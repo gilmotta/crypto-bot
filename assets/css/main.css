@@ -1924,6 +1924,10 @@ a.expanded>span.caret {
   color: #fff;
 }
 
+.curso-help {
+  cursor: help;
+}
+
 @keyframes blinker {
   50% {
     opacity: 0.25;

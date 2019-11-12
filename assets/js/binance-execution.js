@@ -39,7 +39,7 @@ function binanceRoundAmmount(amount) {
   for (let i = 0; i < precision; i++) {
     factor *= 10;
   }
-  amount = Math.floor(amount * factor) / factor;
+  amount = Math.round(amount * factor) / factor;
 
   return Number.parseFloat(amount.toFixed(precision));
 }
@@ -155,25 +155,26 @@ function getOrderTradePrice(execution, orderId, type) {
         }
 
         if (qty !== 0) {
-          if (commision !== 0 && type === 'buy') {
-            //Change position size as we don't have the initial ammount to sell because of the commision
-            execution.positionSizeToSell = binanceRoundAmmount(qty - commision);
-            self.postMessage([execId, 'CH_POS_SIZE', execution.positionSizeToSell]);
-          } else if (bnbCommision !== 0 && type === 'buy' && execution.instrument.indexOf('BNB') == 0) {
-            let balance = await getBalance(execution.instrument);
-            if (balance < execution.positionSize) {
+          if (type === 'buy') {
+            if (commision !== 0) {
               //Change position size as we don't have the initial ammount to sell because of the commision
-              execution.positionSizeToSell = binanceRoundAmmount(qty - bnbCommision);
+              execution.positionSizeToSell = binanceRoundAmmount(qty - commision);
               self.postMessage([execId, 'CH_POS_SIZE', execution.positionSizeToSell]);
+            } else if (bnbCommision !== 0 && execution.instrument.indexOf('BNB') == 0) {
+              let balance = await getBalance(execution.instrument);
+              if (balance < execution.positionSize) {
+                //Change position size as we don't have the initial ammount to sell because of the commision
+                execution.positionSizeToSell = binanceRoundAmmount(qty - bnbCommision);
+                self.postMessage([execId, 'CH_POS_SIZE', execution.positionSizeToSell]);
+              } else {
+                execution.positionSizeToSell = binanceRoundAmmount(qty);
+                self.postMessage([execId, 'CH_POS_SIZE', execution.positionSizeToSell]);
+              }
             } else {
-              execution.positionSizeToSell = binanceRoundAmmount(qty);
+              execution.positionSizeToSell = qty;
               self.postMessage([execId, 'CH_POS_SIZE', execution.positionSizeToSell]);
             }
-          } else {
-            execution.positionSizeToSell = binanceRoundAmmount(qty);
-            self.postMessage([execId, 'CH_POS_SIZE', execution.positionSizeToSell]);
           }
-
           resolve([
             Number.parseFloat((sum / qty).toFixed(8)),
             Number.parseFloat((qty).toFixed(8))
@@ -240,6 +241,7 @@ async function marketSell(execution, curPrice) {
   await cancelOrder(execution.instrument, execution.takeProfitOrderId);
   let takeProfitExecutedQty = await checkTakeProfitExecuted();
   let positionSize = execution.positionSizeToSell + execution.minNotionalAmountLeft;
+  positionSize = binanceRoundAmmount(positionSize);
   if (takeProfitExecutedQty >= positionSize) {
     return;
   }
@@ -381,7 +383,8 @@ async function checkTakeProfitExecuted() {
   if (priceAndQty === null || priceAndQty[1] == null) {
     return 0;
   }
-  let positionSize = execution.positionSize + execution.minNotionalAmountLeft;
+  let positionSize = execution.positionSizeToSell + execution.minNotionalAmountLeft;
+  positionSize = binanceRoundAmmount(positionSize);
   if (priceAndQty[1] >= positionSize) {
     execution.minNotionalAmountLeft = 0;
     self.postMessage([execId, 'MIN_NOTIONAL', execution.minNotionalAmountLeft]);
@@ -391,7 +394,7 @@ async function checkTakeProfitExecuted() {
     execution.trades[tradeIndex]['closeDate'] = new Date();
     execution.trades[tradeIndex]['exit'] = priceAndQty[0];
     execution.trades[tradeIndex]['result'] = (((execution.trades[tradeIndex].exit - execution.trades[tradeIndex].entry) / execution.trades[tradeIndex].entry) * 100) - (feeRate * 2);
-    execution.trades[tradeIndex]['resultMoney'] = (execution.trades[tradeIndex]['result'] / 100) * (positionSize * priceAndQty[0]);
+    execution.trades[tradeIndex]['resultMoney'] = (execution.trades[tradeIndex]['result'] / 100) * (priceAndQty[1] * priceAndQty[0]);
     self.postMessage([
       execId, 'SELL', execution.trades[tradeIndex]
     ]);

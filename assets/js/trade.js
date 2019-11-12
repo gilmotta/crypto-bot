@@ -34,7 +34,7 @@ async function tsFillBinanceInstruments() {
 let tsInstrumentMutex = new Mutex();
 async function tsInstrumentKeyup() {
   try {
-    tsInstrumentMutex.lock();
+    await tsInstrumentMutex.lock();
     fillPosSizeDetails();
     fillMaxLossDetails();
     $('#tsInstrumentList>ul').html('');
@@ -354,6 +354,7 @@ async function rmExecutionFromTable(id) {
     $('#executionTableItem' + id).remove();
     await sleep(200);
     await removeExecutionFromDb(id);
+    loadStrategies();
     let executions = await getExecutionsFromDb();
     fillTotalExecutionResult();
     if (executions.length == 0) {
@@ -1321,6 +1322,41 @@ async function isStrategyRunning(name) {
   return false;
 }
 
+async function getStrategyExecutionStatus(name) {
+  let realTrading = false;
+  let simTrading = false;
+  let alerts = false;
+
+  let executions = await getExecutionsFromDb();
+  for (let execution of executions) {
+    if (execution.name === name) {
+      switch (execution.type) {
+        case 'Trading':
+          realTrading = true;
+          break;
+        case 'Simulation':
+          simTrading = true;
+          break;
+        case 'Alerts':
+          alerts = true;
+          break;
+        default:
+      }
+    }
+  }
+  let result = '';
+  if (alerts) {
+    result += '<span class="curso-help" title="Executes in Alerts">A. </span>'
+  }
+  if (simTrading) {
+    result += '<span class="curso-help"title="Executes in Simulation">S. </span>'
+  }
+  if (realTrading) {
+    result += '<span class="curso-help" title="Executes in Real Trading">R. </span>'
+  }
+  return result;
+}
+
 async function isStrategyUsedInExecutions(name) {
   let executions = await getExecutionsFromDb();
   for (let execution of executions) {
@@ -1499,6 +1535,7 @@ async function runStrategy(id) {
         } else if (worker.status === 'paused') {
           setStatusAndActions(id, 'Starting');
           worker.status = 'running'
+          loadStrategies();
           worker.wk.postMessage('RESUME');
           return true;
         }
@@ -1692,6 +1729,7 @@ async function runStrategy(id) {
       let instrumentInfo = await getBinanceInstrumentsInfo(execution.instrument);
       let strategy = await getStrategyByName(execution.name);
       wk.postMessage([execution, strategy, apiKey, apiSecret, instrumentInfo]);
+      loadStrategies();
       return true;
     }
   } catch (err) {
@@ -1705,6 +1743,7 @@ async function stopStrategyExecution(id, errorMsg, dontWait, terminate) {
   for (let worker of executionWorkers) {
     if (worker.execId == id) {
       worker.status = 'paused';
+      loadStrategies();
       if (terminate) {
         worker.wk.postMessage('DELAYED_TERMINATE');
       } else {

@@ -551,7 +551,7 @@ async function binanceRoundAmmount(amount, instrument) {
   for (let i = 0; i < precision; i++) {
     factor *= 10;
   }
-  amount = Math.floor(amount * factor) / factor;
+  amount = Math.round(amount * factor) / factor;
   return Number.parseFloat(amount.toFixed(precision));
 }
 
@@ -677,9 +677,10 @@ async function binanceMarketSell(execution) {
   }
   await binanceCancelOrder(execution.instrument, execution.takeProfitOrderId);
   let positionSize = execution.positionSizeToSell + execution.minNotionalAmountLeft;
+  positionSize = await binanceRoundAmmount(positionSize, execution.instrument);
   let priceAndQty = await binanceGetOrderTradePrice(execution.instrument, execution.takeProfitOrderId, 'sell');
   if (priceAndQty !== null) {
-    if (priceAndQty[1] >= execution.positionSize) {
+    if (priceAndQty[1] >= positionSize) {
       return priceAndQty[0];
     } else {
       positionSize -= priceAndQty[1];

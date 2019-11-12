@@ -837,15 +837,28 @@ function openOptimizeStrategy(name) {
   $(window).scrollTop(0);
 }
 
+const loadStrategiesMutex = new Mutex();
 async function loadStrategies() {
   try {
+    await loadStrategiesMutex.lock();
     const strategies = await getStrategies();
     $('#strategiesTable tbody').html('');
-    strategies.forEach(function(d) {
-      $('#strategiesTable tbody').append('<tr><td>' + d.name + '</td><td class="text-center"><a title="Edit Strategy" href="#newStrategyLabel" onclick="editStrategy(\'' + d.name.replace(/'/g,"\\'") + '\')" ><i class="far fa-edit"></i></a>' + '&nbsp;&nbsp;&nbsp;<a title="Backtest Strategy" href="#/" onclick="openBacktestStrategy(\'' + d.name.replace(/'/g,"\\'") + '\')" ><i class="fas fa-chart-line"></i></a>' + '&nbsp;&nbsp;&nbsp;<a title="Optimize Strategy" href="#/" onclick="openOptimizeStrategy(\'' + d.name.replace(/'/g,"\\'") + '\')" ><i class="fas fa-cogs"></i></a>' + '&nbsp;&nbsp;&nbsp;<a title="Remove Strategy" href="#/" onclick="rmStrategy(\'' + d.name.replace(/'/g,"\\'") + '\')"><i class="fas fa-trash"></i></a></td></tr>');
-    });
+    for (let strategy of strategies) {
+      let usedInExecution = await getStrategyExecutionStatus(strategy.name);
+      let running = '';
+      if (usedInExecution.length > 0 ) {
+        let isRunning = await isStrategyRunning(strategy.name);
+        if (isRunning) {
+          running = '<i title="Currently running" class="fas fa-bolt curso-help"></i>';
+        }
+      }
+
+      $('#strategiesTable tbody').append('<tr><td>' + strategy.name + '</td><td class="text-center">' + running + '</td><td class="text-right">' + usedInExecution + '</td><td class="text-center"><a title="Edit Strategy" href="#newStrategyLabel" onclick="editStrategy(\'' + strategy.name.replace(/'/g,"\\'") + '\')" ><i class="far fa-edit"></i></a>' + '&nbsp;&nbsp;&nbsp;<a title="Backtest Strategy" href="#/" onclick="openBacktestStrategy(\'' + strategy.name.replace(/'/g,"\\'") + '\')" ><i class="fas fa-chart-line"></i></a>' + '&nbsp;&nbsp;&nbsp;<a title="Optimize Strategy" href="#/" onclick="openOptimizeStrategy(\'' + strategy.name.replace(/'/g,"\\'") + '\')" ><i class="fas fa-cogs"></i></a>' + '&nbsp;&nbsp;&nbsp;<a title="Remove Strategy" href="#/" onclick="rmStrategy(\'' + strategy.name.replace(/'/g,"\\'") + '\')"><i class="fas fa-trash"></i></a></td></tr>');
+    }
   } catch (err) {
     log('error', 'loadStrategies', err.stack);
+  } finally {
+    await loadStrategiesMutex.release();
   }
 }
 
