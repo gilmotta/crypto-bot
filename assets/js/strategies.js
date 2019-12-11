@@ -51,6 +51,7 @@ function removeStrategy(name) {
   });
 }
 
+
 function addStrategy(strategyToAdd) {
   return new Promise((resolve, reject) => {
     getStratetyDb().insert(strategyToAdd, (error, srt) => {
