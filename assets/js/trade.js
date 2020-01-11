@@ -114,32 +114,32 @@ async function fillPosSizeDetailsEdit(field) {
 }
 
 async function fillPosSizeDetailsImpl(instrument, baseCurrencyId, posSizeId, quotedCurrencyId, posSizeId2) {
-  if (instrument.length <= 0 || getQuotedCurrency(instrument) === "" || getBaseCurrency(instrument) === "") {
+  if (instrument.length <= 0 || getBaseCurrency(instrument) === "" || getQuotedCurrency(instrument) === "") {
     $(baseCurrencyId).html("");
     $(quotedCurrencyId).html("");
     $(posSizeId).attr("placeholder", "Amount in Base Coin");
     $(posSizeId2).attr("placeholder", "Amount in Quoted Coin");
     return;
   }
-  $(baseCurrencyId).html(getBaseCurrency(instrument));
-  $(quotedCurrencyId).html(getQuotedCurrency(instrument));
-  $(posSizeId).attr("placeholder", "Amount in " + getBaseCurrency(instrument));
-  $(posSizeId2).attr("placeholder", "Amount in " + getQuotedCurrency(instrument));
+  $(baseCurrencyId).html(getQuotedCurrency(instrument));
+  $(quotedCurrencyId).html(getBaseCurrency(instrument));
+  $(posSizeId).attr("placeholder", "Amount in " + getQuotedCurrency(instrument));
+  $(posSizeId2).attr("placeholder", "Amount in " + getBaseCurrency(instrument));
 
   let prices = await getLastBinancePrices();
   let value = $(posSizeId).val();
   if (value.length > 0 && Number.parseFloat(value) > 0) {
-    let ustdValue = calculateUsdtValue(getBaseCurrency(instrument), Number.parseFloat(value), prices);
+    let ustdValue = calculateUsdtValue(getQuotedCurrency(instrument), Number.parseFloat(value), prices);
     if (ustdValue != null && !isNaN(ustdValue) && $(posSizeId).val() == value) {
-      $(baseCurrencyId).html(getBaseCurrency(instrument) + " (~ $" + ustdValue.toFixed(2) + " )");
+      $(baseCurrencyId).html(getQuotedCurrency(instrument) + " (~ $" + ustdValue.toFixed(2) + " )");
     }
   }
 
   let value2 = $(posSizeId2).val();
   if (value2.length > 0 && Number.parseFloat(value2) > 0) {
-    let ustdValue2 = calculateUsdtValue(getQuotedCurrency(instrument), Number.parseFloat(value2), prices);
+    let ustdValue2 = calculateUsdtValue(getBaseCurrency(instrument), Number.parseFloat(value2), prices);
     if (ustdValue2 != null && !isNaN(ustdValue2) && $(posSizeId2).val() == value2) {
-      $(quotedCurrencyId).html(getQuotedCurrency(instrument) + " (~ $" + ustdValue2.toFixed(2) + " )");
+      $(quotedCurrencyId).html(getBaseCurrency(instrument) + " (~ $" + ustdValue2.toFixed(2) + " )");
     }
   }
 }
@@ -165,18 +165,18 @@ async function fillMaxLossDetailsEdit() {
 }
 
 async function fillMaxLossDetailsImpl(instrument, quotedCurrencyId, posSizeId) {
-  if (instrument.length <= 0 || getQuotedCurrency(instrument) === "" || getBaseCurrency(instrument) === "") {
+  if (instrument.length <= 0 || getBaseCurrency(instrument) === "" || getQuotedCurrency(instrument) === "") {
     $(quotedCurrencyId).html("");
     return;
   }
-  $(quotedCurrencyId).html(getQuotedCurrency(instrument));
+  $(quotedCurrencyId).html(getBaseCurrency(instrument));
 
   let value = Math.abs(Number.parseFloat($(posSizeId).val()));
   if (!isNaN(value) && value != 0) {
     let prices = await getLastBinancePrices();
-    let ustdValue = calculateUsdtValue(getQuotedCurrency(instrument), value, prices);
+    let ustdValue = calculateUsdtValue(getBaseCurrency(instrument), value, prices);
     if (ustdValue != null && !isNaN(ustdValue) && Math.abs(Number.parseFloat($(posSizeId).val())) == value) {
-      $(quotedCurrencyId).html(getQuotedCurrency(instrument) + " (~ $" + ustdValue.toFixed(2) + " )");
+      $(quotedCurrencyId).html(getBaseCurrency(instrument) + " (~ $" + ustdValue.toFixed(2) + " )");
     }
   }
 }
@@ -196,7 +196,7 @@ async function fillExecResInTable(execution) {
   $("#executionRes" + execution.id).addClass(result > 0 ? "text-green" : result < 0 ? "text-red" : "");
 
   let prices = await getLastBinancePrices();
-  let ustdValue = calculateUsdtValue(getQuotedCurrency(execution.instrument), resultMoney, prices);
+  let ustdValue = calculateUsdtValue(getBaseCurrency(execution.instrument), resultMoney, prices);
   if (ustdValue != null && !isNaN(ustdValue)) {
     $("#executionResMoney" + execution.id).removeClass("text-green");
     $("#executionResMoney" + execution.id).removeClass("text-red");
@@ -241,7 +241,7 @@ async function checkMaxLossReached(id) {
       "Max Loss of " +
       execution.maximumLoss +
       " " +
-      getQuotedCurrency(execution.instrument) +
+      getBaseCurrency(execution.instrument) +
       " was reached for execution " +
       execution.name +
       " on " +
@@ -403,7 +403,7 @@ function openIamSupporterDialog() {
         let userIsSupporter = await isUserSupporter();
         if (userIsSupporter) {
           openModalInfo("The supporter key is valid!<br>Now you will be able to execute real trading executions.");
-          clearAllSupporterErrors()
+          clearAllSupporterErrors();
         } else {
           openModalInfo("The supporter key is NOT valid!");
         }
@@ -485,9 +485,9 @@ async function showExecutionResult(id) {
     let execution = await getExecutionById(id);
     $("#executionStrategiesTable").html(
       '<thead><tr><td class="text-left">Trade</td><td>Open Date</td><td>Close Date</td><td>Open Price</td><td>Close Price</td><td>Trade Size (' +
-        getBaseCurrency(execution.instrument) +
-        ")</td><td>Result %</td><td>Result " +
         getQuotedCurrency(execution.instrument) +
+        ")</td><td>Result %</td><td>Result " +
+        getBaseCurrency(execution.instrument) +
         "</td> </tr></thead>"
     );
     $("#executionMarketResDiv").hide();
@@ -648,7 +648,7 @@ async function showExecutionResult(id) {
       $("#executionWinLoss").html(winLossRatio.toFixed(2));
       $("#executionAvgWinLossPerTrade").html(avgGainLossPerTrade.toFixed(2) + "%");
 
-      $("#executionResultWithUsd").html(resultMoney.toFixed(8) + "&nbsp;" + getQuotedCurrency(execution.instrument));
+      $("#executionResultWithUsd").html(resultMoney.toFixed(8) + "&nbsp;" + getBaseCurrency(execution.instrument));
       $("#executionExecutedTrades").html(executedTrades);
 
       $("#executionWinningTradesP").html(winningPercent.toFixed(2) + "%");
@@ -666,16 +666,16 @@ async function showExecutionResult(id) {
       if (execution.positionSize != undefined && execution.positionSize != null && execution.positionSize > 0) {
         $("#executionPosSizeResDiv").show();
         $("#executionPosSizeResDiv2").hide();
-        $("#executionPosSizeRes").html(execution.positionSize + " " + getBaseCurrency(execution.instrument));
+        $("#executionPosSizeRes").html(execution.positionSize + " " + getQuotedCurrency(execution.instrument));
       } else {
         $("#executionPosSizeResDiv").hide();
         $("#executionPosSizeResDiv2").show();
-        $("#executionPosSizeRes2").html(execution.positionSizeQuoted + " " + getQuotedCurrency(execution.instrument));
+        $("#executionPosSizeRes2").html(execution.positionSizeQuoted + " " + getBaseCurrency(execution.instrument));
       }
       if (execution.maximumLoss != null && execution.maximumLoss != undefined) {
         $("#executionMaxLossResDiv").show();
         $("#executionMasLossRes").html(
-          Math.abs(execution.maximumLoss).toFixed(8) + " " + getQuotedCurrency(execution.instrument)
+          Math.abs(execution.maximumLoss).toFixed(8) + " " + getBaseCurrency(execution.instrument)
         );
       } else {
         $("#executionMaxLossResDiv").hide();
@@ -717,33 +717,33 @@ async function showExecutionResult(id) {
 async function fillUSDFields(resultMoney, posSize, posSizeQuoted, maxLoss, instrument) {
   try {
     let prices = await getLastBinancePrices();
-    let ustdValue = calculateUsdtValue(getQuotedCurrency(instrument), resultMoney, prices);
+    let ustdValue = calculateUsdtValue(getBaseCurrency(instrument), resultMoney, prices);
     if (ustdValue == null) {
-      $("#executionResultWithUsd").html(resultMoney.toFixed(8) + "&nbsp;" + getQuotedCurrency(instrument));
-      $("#executionPosSizeRes").html(posSize + "&nbsp;" + getBaseCurrency(instrument));
-      $("#executionMasLossRes").html(Math.abs(maxLoss).toFixed(8) + "&nbsp;" + getQuotedCurrency(instrument));
+      $("#executionResultWithUsd").html(resultMoney.toFixed(8) + "&nbsp;" + getBaseCurrency(instrument));
+      $("#executionPosSizeRes").html(posSize + "&nbsp;" + getQuotedCurrency(instrument));
+      $("#executionMasLossRes").html(Math.abs(maxLoss).toFixed(8) + "&nbsp;" + getBaseCurrency(instrument));
       return;
     }
 
     $("#executionResultWithUsd").html(
-      resultMoney.toFixed(8) + "&nbsp;" + getQuotedCurrency(instrument) + " (~ $" + ustdValue.toFixed(2) + " )"
+      resultMoney.toFixed(8) + "&nbsp;" + getBaseCurrency(instrument) + " (~ $" + ustdValue.toFixed(2) + " )"
     );
 
     if (posSize != null && posSize != undefined && posSize > 0) {
-      let posSizeUsd = calculateUsdtValue(getBaseCurrency(instrument), posSize, prices);
+      let posSizeUsd = calculateUsdtValue(getQuotedCurrency(instrument), posSize, prices);
       $("#executionPosSizeRes").html(
-        posSize + "&nbsp;" + getBaseCurrency(instrument) + " (~ $" + posSizeUsd.toFixed(2) + " )"
+        posSize + "&nbsp;" + getQuotedCurrency(instrument) + " (~ $" + posSizeUsd.toFixed(2) + " )"
       );
     } else {
-      let posSizeUsd = calculateUsdtValue(getQuotedCurrency(instrument), posSizeQuoted, prices);
+      let posSizeUsd = calculateUsdtValue(getBaseCurrency(instrument), posSizeQuoted, prices);
       $("#executionPosSizeRes2").html(
-        posSizeQuoted + "&nbsp;" + getQuotedCurrency(instrument) + " (~ $" + posSizeUsd.toFixed(2) + " )"
+        posSizeQuoted + "&nbsp;" + getBaseCurrency(instrument) + " (~ $" + posSizeUsd.toFixed(2) + " )"
       );
     }
     if (maxLoss !== null) {
-      let maxLossUsd = calculateUsdtValue(getQuotedCurrency(instrument), Math.abs(maxLoss), prices);
+      let maxLossUsd = calculateUsdtValue(getBaseCurrency(instrument), Math.abs(maxLoss), prices);
       $("#executionMasLossRes").html(
-        Math.abs(maxLoss).toFixed(8) + "&nbsp;" + getQuotedCurrency(instrument) + " (~ $" + maxLossUsd.toFixed(2) + " )"
+        Math.abs(maxLoss).toFixed(8) + "&nbsp;" + getBaseCurrency(instrument) + " (~ $" + maxLossUsd.toFixed(2) + " )"
       );
     }
   } catch (err) {
@@ -1402,8 +1402,8 @@ async function sendNotificationTask() {
             result += trade.result;
             resultMoney += trade.resultMoney;
           }
-          let ustdValue = calculateUsdtValue(getQuotedCurrency(executionTmp.instrument), resultMoney, prices);
-          let resultMoneyStr = resultMoney.toFixed(8) + " " + getQuotedCurrency(executionTmp.instrument);
+          let ustdValue = calculateUsdtValue(getBaseCurrency(executionTmp.instrument), resultMoney, prices);
+          let resultMoneyStr = resultMoney.toFixed(8) + " " + getBaseCurrency(executionTmp.instrument);
           if (ustdValue != null && !isNaN(ustdValue)) {
             resultMoneyStr = "$" + ustdValue.toFixed(2);
           }
@@ -1460,7 +1460,7 @@ async function sendTradeMail(execution) {
         "<li>SELL: " +
         trade.posSize +
         " " +
-        getBaseCurrency(execution.instrument) +
+        getQuotedCurrency(execution.instrument) +
         " were sold at " +
         exit +
         ' by "' +
@@ -1472,7 +1472,7 @@ async function sendTradeMail(execution) {
         "% (" +
         trade.resultMoney.toFixed(8) +
         " " +
-        getQuotedCurrency(execution.instrument) +
+        getBaseCurrency(execution.instrument) +
         ").</li>";
     } else {
       let entry = await binanceRoundTickAmmount(trade.entry, execution.instrument);
@@ -1480,7 +1480,7 @@ async function sendTradeMail(execution) {
         "<li>BUY: " +
         trade.posSize +
         " " +
-        getBaseCurrency(execution.instrument) +
+        getQuotedCurrency(execution.instrument) +
         " were bought at " +
         entry +
         ' by "' +
@@ -1510,9 +1510,9 @@ async function fillPosSizePercent(accountValueUsd, prices) {
       if (execution.type === "Trading") {
         let ustdValue = null;
         if (execution.positionSize != null && execution.positionSize != undefined && execution.positionSize > 0) {
-          ustdValue = calculateUsdtValue(getBaseCurrency(execution.instrument), execution.positionSize, prices);
+          ustdValue = calculateUsdtValue(getQuotedCurrency(execution.instrument), execution.positionSize, prices);
         } else {
-          ustdValue = calculateUsdtValue(getQuotedCurrency(execution.instrument), execution.positionSizeQuoted, prices);
+          ustdValue = calculateUsdtValue(getBaseCurrency(execution.instrument), execution.positionSizeQuoted, prices);
         }
         let percent = (ustdValue / accountValueUsd) * 100;
         $("#posSizePercent" + execution.id).html(percent.toFixed(2) + "%");
@@ -1584,7 +1584,7 @@ async function checkPositionSize(positionSize, exchange, instrument) {
         " cannot be less than " +
         instrumentInfo.minQty +
         " " +
-        getBaseCurrency(instrument) +
+        getQuotedCurrency(instrument) +
         " on " +
         exchange +
         " exchange!"
@@ -1597,7 +1597,7 @@ async function checkPositionSize(positionSize, exchange, instrument) {
         " cannot be greater than " +
         instrumentInfo.maxQty +
         " " +
-        getBaseCurrency(instrument) +
+        getQuotedCurrency(instrument) +
         " on " +
         exchange +
         " exchange!"
@@ -1618,7 +1618,7 @@ async function checkPositionSize(positionSize, exchange, instrument) {
         " does not meet Binance requirement for net minimum trading amount (MIN_NOTIONAL)! Try with bigger size than " +
         (instrumentInfo.minNotional / curPrice).toFixed(8) +
         " " +
-        getBaseCurrency(instrument)
+        getQuotedCurrency(instrument)
     );
     return [false];
   }
@@ -1663,7 +1663,7 @@ async function checkPositionSizeQuoted(positionSize, exchange, instrument) {
         " cannot be less than " +
         (instrumentInfo.minQty * curPrice).toFixed(8) +
         " " +
-        getQuotedCurrency(instrument) +
+        getBaseCurrency(instrument) +
         " on " +
         exchange +
         " exchange!"
@@ -1676,7 +1676,7 @@ async function checkPositionSizeQuoted(positionSize, exchange, instrument) {
         " cannot be greater than " +
         (instrumentInfo.maxQty * curPrice).toFixed(8) +
         " " +
-        getQuotedCurrency(instrument) +
+        getBaseCurrency(instrument) +
         " on " +
         exchange +
         " exchange!"
@@ -1691,7 +1691,7 @@ async function checkPositionSizeQuoted(positionSize, exchange, instrument) {
         " does not meet Binance requirement for minimum trading amount! Try with bigger size than " +
         Number.parseFloat(instrumentInfo.minNotional).toFixed(8) +
         " " +
-        getQuotedCurrency(instrument)
+        getBaseCurrency(instrument)
     );
     return false;
   }
