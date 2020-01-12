@@ -28,4 +28,4 @@ class Mutex {
 
 module.exports = {
   Mutex: Mutex
-}
+};
