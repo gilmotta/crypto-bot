@@ -223,7 +223,7 @@ async function isUserSupporter() {
     }
     return new Promise((resolve, reject) => {
       $.ajax({
-        url: "https://easycryptobot.com/supporter-check.php",
+        url: "",
         contentType: "json",
         type: "GET",
         data: {
@@ -352,7 +352,7 @@ async function downloadUpdates() {
     await removeFile(file);
   } catch (err) {}
   ipcRenderer.send("download", {
-    url: "https://easycryptobot.com/downloads/app.asar",
+    url: "",
     properties: {
       directory: getAppDataFolder() + "/update"
     }
@@ -380,7 +380,7 @@ function showUpdateMsg(curVersion, latestVersion) {
     openModalConfirm(
       "<h3>An update is available!</h3><br>Check on the button below to see what is new since your current version " +
         curVersion +
-        '<br> <a href="https://easycryptobot.com/update?n=' +
+        '<br> <a href="' +
         random +
         '" target="_blank" class="button alt white">Update Info</a><br><br><h3>Update now?</h3>',
       function() {
@@ -392,7 +392,7 @@ function showUpdateMsg(curVersion, latestVersion) {
     openModalInfo(
       "<h3>An update is available!</h3><br>Check on the button below to see what is new since your current version " +
         curVersion +
-        '<br> <a href="https://easycryptobot.com/update?n=' +
+        '<br> <a href="' +
         random +
         '" target="_blank" class="button alt white">Update Info</a><br><br>No automatic update is available for your version. In order to update, you need to download again the app from <span class="one-click-select">https://easycryptobot.com/</span>. After the download you can extract the app at a new location and start it from there.'
     );
@@ -406,7 +406,7 @@ async function checkForUpdates(data, showUpdate, showNoUpdate) {
   }
   $.ajax({
     type: "get",
-    url: "https://easycryptobot.com/version.html",
+    url: "",
     cache: false,
     data: data,
     success: function(data) {
@@ -440,7 +440,7 @@ async function checkForUpdates(data, showUpdate, showNoUpdate) {
 async function getInteractiveContent() {
   $.ajax({
     type: "get",
-    url: "https://easycryptobot.com/interactive.html",
+    url: "",
     cache: false,
     data: {},
     success: function(data) {
@@ -483,7 +483,7 @@ async function checkEulaAccepted() {
       let random = Math.floor(Math.random() * 8999999999 + 1000000000);
       openModalAcceptBig(
         '<h2 class="text-center">End User License Agreement</h2><br>By clicking on "Accept" below you are accepting the full Terms and Conditions of the EasyCryptoBot application, available at ' +
-          '<a href="https://easycryptobot.com/terms.html?n=' +
+          '<a href="' +
           random +
           '" target="_blank" style="font-weight:bold;margin:0 18px 0 0;padding:0;text-decoration:underline">https://easycryptobot.com/terms.html</a>. Cryptocurrency trading involves risk, and is not suitable for all investors. ' +
           "You are responsible for all the risks and financial resources that you are using for trading and you should carefully consider your investment objectives. " +

@@ -446,7 +446,7 @@ function sendSupporterMsg() {
       .replace(/(?:\r\n|\r|\n)/g, "<br>");
 
   $.post(
-    "https://easycryptobot.com/mail-supp.php",
+    "",
     {
       f: "ecb",
       m: mail,
@@ -1021,7 +1021,7 @@ function sendEmail(execution, type, date, entry) {
     return;
   }
   $.post(
-    "https://easycryptobot.com/mail-sender.php",
+    "",
     {
       f: "ecb",
       m: execution.email,
@@ -1364,7 +1364,7 @@ async function sendErrorMail(execution) {
       execution.error;
 
     $.post(
-      "https://easycryptobot.com/mail-error-sender.php",
+      "",
       {
         f: "ecb",
         m: email,
@@ -1426,7 +1426,7 @@ async function sendNotificationTask() {
       try {
         await notificationsMutex.lock();
         $.post(
-          "https://easycryptobot.com/mail-trade-sender.php",
+          "",
           {
             f: "ecb",
             m: email,

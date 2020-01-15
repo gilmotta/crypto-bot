@@ -22,7 +22,7 @@ async function getBinanceInstruments() {
           } else {
             if (ticker === null || JSON.stringify(ticker) === '{}') {
               $.ajax({
-                url: 'https://easycryptobot.com/instruments.php',
+                url: '',
                 contentType: 'json',
                 type: 'GET',
                 success: function(data) {
