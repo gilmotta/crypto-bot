@@ -215,35 +215,6 @@ async function storeUserSupporterKey(key) {
   });
 }
 
-async function isUserSupporter() {
-  try {
-    let stats = await getSupporterStatus();
-    if (stats == null || stats == undefined || stats.supporter == null || stats.supporter == undefined) {
-      return false;
-    }
-    return new Promise((resolve, reject) => {
-      $.ajax({
-        url: "",
-        contentType: "json",
-        type: "GET",
-        data: {
-          f: "ecb",
-          c: stats.supporter
-        },
-        success: function(data) {
-          resolve(data == "true");
-        },
-        error: function(err) {
-          reject(false);
-        }
-      });
-    });
-  } catch (err) {
-    log("error", "isUserSupporter", err.stack);
-    return false;
-  }
-}
-
 ipcRenderer.on("download complete", (event, file) => {
   try {
     const newSar = getAppDataFolder() + "/update/app.asar";

@@ -1,351 +1,589 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <!--
 EasyCryptoBot Copyright (C) 2018 Insentico Ltd.
 -->
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/my-util.js"></script>
+    <script src="assets/js/mutex.js"></script>
+    <script src="assets/js/strategies.js"></script>
+    <link rel="stylesheet" href="assets/css/fontawesome-all.min.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="import" href="sections/home.html" />
+    <link rel="import" href="sections/strategies.html" />
+    <link rel="import" href="sections/optimize.html" />
+    <link rel="import" href="sections/backtest.html" />
+    <link rel="import" href="sections/trade.html" />
+    <link rel="import" href="sections/bugs.html" />
+  </head>
 
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<script src="assets/js/utils.js"></script>
-	<script src="assets/js/my-util.js"></script>
-	<script src="assets/js/mutex.js"></script>
-	<script src="assets/js/strategies.js"></script>
-	<link rel="stylesheet" href="assets/css/fontawesome-all.min.css">
-	<link rel="stylesheet" href="assets/css/main.css" />
-	<link rel="import" href="sections/home.html">
-	<link rel="import" href="sections/strategies.html">
-	<link rel="import" href="sections/optimize.html">
-	<link rel="import" href="sections/backtest.html">
-	<link rel="import" href="sections/trade.html">
-	<link rel="import" href="sections/bugs.html">
+  <body>
+    <!-- Sidebar -->
+    <section id="sidebar">
+      <div class="inner">
+        <nav>
+          <ul>
+            <li><a id="homeMenu" onclick="sectionClick('#home')" href="#">Home</a></li>
+            <li><a id="strategiesMenu" onclick="sectionClick('#strategies')" href="#">Strategies</a></li>
+            <li><a id="backtestMenu" onclick="sectionClick('#backtest')" href="#">Backtest</a></li>
+            <li><a id="optimizeMenu" onclick="sectionClick('#optimize')" href="#">Optimize</a></li>
+            <li><a id="tradeMenu" onclick="sectionClick('#trade')" href="#">Trading</a></li>
+            <li><a id="bugMenu" onclick="sectionClick('#bugs')" href="#">Report Bug</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div id="updateAvailable">
+        <a id="updateBtn" class="blink display-none" href="#">UPDATE AVAILABLE</a>
+        <a id="checkForUpdateBtn" onclick="checkForUpdates({type: 'manual-check'}, true, true)" href="#"
+          >CHECK FOR UPDATE</a
+        >
+      </div>
+    </section>
 
-</head>
+    <!-- Wrapper -->
+    <div id="wrapper"></div>
+    <div id="wrapperModals">
+      <div id="newStrategyWindow" class="modal">
+        <div id="newStrategyWindowDiv">
+          <a class="close-modal" onclick="closeNewStrategy()" href="#/"><i class="text-red fas fa-times"></i></a>
+          <div>
+            <div class="text-center">
+              <h2 id="newStrategyLabel">Create New Strategy</h2>
+              Name: <input class="white" id="strategyName" type="text" /> &nbsp;
+              <a id="duplicateStrategyBtn" href="#/" onclick="duplicateStrategy()" class="button alt white display-none"
+                ><i class="fas fa-copy"></i> Duplicate</a
+              >
+              <p>You can use up to 2 different timeframes in your rules.</p>
+            </div>
+          </div>
 
-<body>
-	<!-- Sidebar -->
-	<section id="sidebar">
-		<div class="inner">
-			<nav>
-				<ul>
-					<li><a id="homeMenu" onclick="sectionClick('#home')" href="#">Home</a></li>
-					<li><a id="strategiesMenu" onclick="sectionClick('#strategies')" href="#">Strategies</a></li>
-					<li><a id="backtestMenu" onclick="sectionClick('#backtest')" href="#">Backtest</a></li>
-					<li><a id="optimizeMenu" onclick="sectionClick('#optimize')" href="#">Optimize</a></li>
-					<li><a id="tradeMenu" onclick="sectionClick('#trade')" href="#">Trading</a></li>
-					<li><a id="bugMenu" onclick="sectionClick('#bugs')" href="#">Report Bug</a></li>
-				</ul>
-			</nav>
-		</div>
-		<div id="updateAvailable"><a id="updateBtn" class="blink display-none" href="#">UPDATE AVAILABLE</a>
-			<a id="checkForUpdateBtn" onclick="checkForUpdates({type: 'manual-check'}, true, true)" href="#">CHECK FOR UPDATE</a></div>
-	</section>
+          <hr />
+          <h3 class="text-center">1. Open Position: BUY when all of the following rules are met:</h3>
+          <div class="text-center margin-b10">
+            <div class="inline" id="buyRulesDiv">
+              Add new Rule with
+              <div class="drop-down">
+                <a href="#/" onclick="dropDown('#buyRulesDiv')"
+                  ><span id="buyRulesCombobox" class="name">Simple Moving Average SMA</span> <span class="caret"></span
+                ></a>
+                <ul>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Simple Moving Average SMA', '#buyRulesDiv', function(){buyRuleType='sma'})"
+                      >Simple Moving Average SMA</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Exponential Moving Average EMA', '#buyRulesDiv', function(){buyRuleType='ema'})"
+                      >Exponential Moving Average EMA</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Crossing Moving Averages', '#buyRulesDiv', function(){buyRuleType='cma'})"
+                      >Crossing Moving Averages</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Relative Strength Index RSI', '#buyRulesDiv', function(){buyRuleType='rsi'})"
+                      >Relative Strength Index RSI</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#/" onclick="dropDownItem('MACD', '#buyRulesDiv', function(){buyRuleType='macd'})">MACD</a>
+                  </li>
+                  <li>
+                    <a href="#/" onclick="dropDownItem('Bollinger Bands', '#buyRulesDiv', function(){buyRuleType='bb'})"
+                      >Bollinger Bands</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#/" onclick="dropDownItem('Stochastic', '#buyRulesDiv', function(){buyRuleType='sto'})"
+                      >Stochastic</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Stochastic RSI', '#buyRulesDiv', function(){buyRuleType='stoRsi'})"
+                      >Stochastic RSI</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Average True Range ', '#buyRulesDiv', function(){buyRuleType='atr'})"
+                      >Average True Range
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            &nbsp;<a id="newBuyRuleBtn" href="#/" onclick="newBuyRule()" class="button2"
+              ><i class="text-green fa fa-plus"></i> Add</a
+            >
+          </div>
+          <div id="buyRules">
+            <ul></ul>
+          </div>
+          <hr />
+          <h3 class="text-center">2. Close Position: Sell when all of the following rules are met:</h3>
+          <div class="text-center margin-b10">
+            <div class="inline" id="sellRulesDiv">
+              Add new Rule with
+              <div class="drop-down">
+                <a href="#/" onclick="dropDown('#sellRulesDiv')"
+                  ><span id="sellRulesCombobox" class="name">Simple Moving Average SMA</span> <span class="caret"></span
+                ></a>
+                <ul>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Simple Moving Average SMA', '#sellRulesDiv', function(){sellRuleType='sma'})"
+                      >Simple Moving Average SMA</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Exponential Moving Average EMA', '#sellRulesDiv', function(){sellRuleType='ema'})"
+                      >Exponential Moving Average EMA</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Crossing Moving Averages', '#sellRulesDiv', function(){sellRuleType='cma'})"
+                      >Crossing Moving Averages</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Relative Strength Index RSI', '#sellRulesDiv', function(){sellRuleType='rsi'})"
+                      >Relative Strength Index RSI</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#/" onclick="dropDownItem('MACD', '#sellRulesDiv', function(){sellRuleType='macd'})"
+                      >MACD</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Bollinger Bands', '#sellRulesDiv', function(){sellRuleType='bb'})"
+                      >Bollinger Bands</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#/" onclick="dropDownItem('Stochastic', '#sellRulesDiv', function(){sellRuleType='sto'})"
+                      >Stochastic</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Stochastic RSI', '#sellRulesDiv', function(){sellRuleType='stoRsi'})"
+                      >Stochastic RSI</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="#/"
+                      onclick="dropDownItem('Average True Range ', '#sellRulesDiv', function(){buyRuleType='atr'})"
+                      >Average True Range
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            &nbsp;<a id="newSellRuleBtn" href="#/" onclick="newSellRule()" class="button2"
+              ><i class="text-green fa fa-plus"></i> Add</a
+            >
+          </div>
+          <div id="sellRules">
+            <ul></ul>
+          </div>
+          <hr />
+          <div class="text-center">
+            <h3 class="text-center">
+              3. Set Stoploss and Target: Sell if the price moves against you or if your target is met:
+            </h3>
+            <span class="min-width7 inline-block text-left"
+              ><a title="Info" onclick="stoplossInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a
+              >&nbsp;Stoploss:&nbsp;</span
+            >
+            <input
+              class="white"
+              id="stoploss"
+              onkeydown="stoplossTypeChange('sl')"
+              style="width:10em;"
+              type="number"
+              value=""
+            />&nbsp;%<br />
+            <span class="min-width7 inline-block text-left"
+              ><a title="Info" onclick="stoplossInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a
+              >&nbsp;Trailing SL:&nbsp;</span
+            >
+            <input
+              class="white"
+              id="trailingSl"
+              onkeydown="stoplossTypeChange('tsl')"
+              style="width:10em;"
+              type="number"
+              value=""
+            />&nbsp;%<br />
+            <span class="min-width7 inline-block text-left"
+              ><a title="Info" onclick="targetInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a
+              >&nbsp;Target:&nbsp;</span
+            >
+            <input
+              class="white"
+              id="target"
+              style="width:10em;"
+              type="number"
+              onkeydown="stoplossTypeChange('t')"
+            />&nbsp;%<br />
 
-	<!-- Wrapper -->
-	<div id="wrapper">
-	</div>
-	<div id="wrapperModals">
-		<div id="newStrategyWindow" class="modal">
-			<div id="newStrategyWindowDiv">
-				<a class="close-modal" onclick="closeNewStrategy()" href="#/"><i class="text-red fas fa-times"></i></a>
-				<div>
-					<div class="text-center">
-						<h2 id="newStrategyLabel">Create New Strategy</h2> Name: <input class="white" id="strategyName" type="text" /> &nbsp;
-						<a id="duplicateStrategyBtn" href="#/" onclick="duplicateStrategy()" class="button alt white display-none"><i class="fas fa-copy"></i> Duplicate</a>
-						<p>You can use up to 2 different timeframes in your rules.</p>
-					</div>
-				</div>
+            <span class="min-width7 inline-block text-left"
+              ><a title="Info" onclick="ttargetInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a
+              >&nbsp;Trailing T.:&nbsp;</span
+            >
+            <input
+              class="white"
+              id="ttarget"
+              style="width:10em;"
+              onkeydown="stoplossTypeChange('tt')"
+              type="number"
+              value=""
+            />&nbsp;%<br />
 
-				<hr />
-				<h3 class="text-center">1. Open Position: BUY when all of the following rules are met:</h3>
-				<div class="text-center margin-b10">
-					<div class="inline" id="buyRulesDiv">
-						Add new Rule with
-						<div class="drop-down">
-							<a href="#/" onclick="dropDown('#buyRulesDiv')"><span id="buyRulesCombobox" class="name">Simple Moving Average SMA</span> <span class="caret"></span></a>
-							<ul>
-								<li><a href="#/" onclick="dropDownItem('Simple Moving Average SMA', '#buyRulesDiv', function(){buyRuleType='sma'})">Simple Moving Average SMA</a></li>
-								<li><a href="#/" onclick="dropDownItem('Exponential Moving Average EMA', '#buyRulesDiv', function(){buyRuleType='ema'})">Exponential Moving Average EMA</a></li>
-								<li><a href="#/" onclick="dropDownItem('Crossing Moving Averages', '#buyRulesDiv', function(){buyRuleType='cma'})">Crossing Moving Averages</a></li>
-								<li><a href="#/" onclick="dropDownItem('Relative Strength Index RSI', '#buyRulesDiv', function(){buyRuleType='rsi'})">Relative Strength Index RSI</a></li>
-								<li><a href="#/" onclick="dropDownItem('MACD', '#buyRulesDiv', function(){buyRuleType='macd'})">MACD</a></li>
-								<li><a href="#/" onclick="dropDownItem('Bollinger Bands', '#buyRulesDiv', function(){buyRuleType='bb'})">Bollinger Bands</a></li>
-								<li><a href="#/" onclick="dropDownItem('Stochastic', '#buyRulesDiv', function(){buyRuleType='sto'})">Stochastic</a></li>
-									<li><a href="#/" onclick="dropDownItem('Stochastic RSI', '#buyRulesDiv', function(){buyRuleType='stoRsi'})">Stochastic RSI</a></li>
-							</ul>
-						</div>
-					</div>
-					&nbsp;<a id="newBuyRuleBtn" href="#/" onclick="newBuyRule()" class="button2"><i class="text-green fa fa-plus"></i> Add</a>
-				</div>
-				<div id="buyRules">
-					<ul>
-					</ul>
-				</div>
-				<hr />
-				<h3 class="text-center">2. Close Position: Sell when all of the following rules are met:</h3>
-				<div class="text-center margin-b10">
-					<div class="inline" id="sellRulesDiv">
-						Add new Rule with
-						<div class="drop-down">
-							<a href="#/" onclick="dropDown('#sellRulesDiv')"><span id="sellRulesCombobox" class="name">Simple Moving Average SMA</span> <span class="caret"></span></a>
-							<ul>
-								<li><a href="#/" onclick="dropDownItem('Simple Moving Average SMA', '#sellRulesDiv', function(){sellRuleType='sma'})">Simple Moving Average SMA</a></li>
-								<li><a href="#/" onclick="dropDownItem('Exponential Moving Average EMA', '#sellRulesDiv', function(){sellRuleType='ema'})">Exponential Moving Average EMA</a></li>
-								<li><a href="#/" onclick="dropDownItem('Crossing Moving Averages', '#sellRulesDiv', function(){sellRuleType='cma'})">Crossing Moving Averages</a></li>
-								<li><a href="#/" onclick="dropDownItem('Relative Strength Index RSI', '#sellRulesDiv', function(){sellRuleType='rsi'})">Relative Strength Index RSI</a></li>
-								<li><a href="#/" onclick="dropDownItem('MACD', '#sellRulesDiv', function(){sellRuleType='macd'})">MACD</a></li>
-								<li><a href="#/" onclick="dropDownItem('Bollinger Bands', '#sellRulesDiv', function(){sellRuleType='bb'})">Bollinger Bands</a></li>
-								<li><a href="#/" onclick="dropDownItem('Stochastic', '#sellRulesDiv', function(){sellRuleType='sto'})">Stochastic</a></li>
-								<li><a href="#/" onclick="dropDownItem('Stochastic RSI', '#sellRulesDiv', function(){sellRuleType='stoRsi'})">Stochastic RSI</a></li>
-							</ul>
-						</div>
-					</div>
-					&nbsp;<a id="newSellRuleBtn" href="#/" onclick="newSellRule()" class="button2"><i class="text-green fa fa-plus"></i> Add</a>
-				</div>
-				<div id="sellRules">
-					<ul>
-					</ul>
-				</div>
-				<hr />
-				<div class="text-center">
-					<h3 class="text-center">3. Set Stoploss and Target: Sell if the price moves against you or if your target is met:</h3>
-					<span class="min-width7 inline-block text-left"><a title="Info" onclick="stoplossInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a>&nbsp;Stoploss:&nbsp;</span>
-					<input class="white" id="stoploss" onkeydown="stoplossTypeChange('sl')" style="width:10em;" type="number" value="" />&nbsp;%<br>
-					<span class="min-width7 inline-block text-left"><a title="Info" onclick="stoplossInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a>&nbsp;Trailing SL:&nbsp;</span>
-					<input class="white" id="trailingSl" onkeydown="stoplossTypeChange('tsl')" style="width:10em;" type="number" value="" />&nbsp;%<br>
-					<span class="min-width7 inline-block text-left"><a title="Info" onclick="targetInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a>&nbsp;Target:&nbsp;</span>
-					<input class="white" id="target" style="width:10em;" type="number" onkeydown="stoplossTypeChange('t')" />&nbsp;%<br>
+            <span style="margin-left:1.4em;" class="min-width7 inline-block text-left"
+              ><a title="Info" onclick="timeCloseInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a
+              >&nbsp;Time Close:&nbsp;</span
+            >
+            <input class="white" id="timeClose" style="width:10em;" type="number" value="" />&nbsp;hours<br />
+            <span style="font-size:small">If you don't want Stoloss or Target, leave them empty.</span>
+          </div>
+          <hr />
 
-					<span class="min-width7 inline-block text-left"><a title="Info" onclick="ttargetInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a>&nbsp;Trailing T.:&nbsp;</span>
-					<input class="white" id="ttarget" style="width:10em;" onkeydown="stoplossTypeChange('tt')" type="number" value="" />&nbsp;%<br>
+          <div class="text-center margin-s-b30">
+            <div class="" style="font-size:small">Except for the Target, the bot executes MARKET ORDERS.</div>
+            <div class="margin-s-b10" style="font-size:small">
+              When all BUY or SELL rules are met the bot will execute a MARKET BUY or SELL ORDER on the next candle open
+              <a title="Info" onclick="ordersInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a>.
+            </div>
+            <a href="#/" id="saveStrategyBtn" onclick="saveStrategy()" class="button alt white">Save</a>
+            <a href="#/" onclick="closeNewStrategy()" class="button alt white">Cancel</a>
+            <div style="font-size:small" id="saveStrategyDisabled" class="display-none">
+              * This strategy is currently running. Please stop the execution and then try to edit.
+            </div>
+          </div>
+          <br />
+        </div>
+      </div>
 
-					<span style="margin-left:1.4em;" class="min-width7 inline-block text-left"><a title="Info" onclick="timeCloseInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a>&nbsp;Time Close:&nbsp;</span>
-					<input class="white" id="timeClose" style="width:10em;" type="number" value="" />&nbsp;hours<br>
-					<span style="font-size:small">If you don't want Stoloss or Target, leave them empty.</span>
-				</div>
-				<hr />
+      <div id="executionResultsWindow" class="modal">
+        <div id="executionResultsWindowDiv">
+          <a class="close-modal" onclick="closeExecutionWindow()" href="#/"><i class="text-red fas fa-times"></i></a>
+          <div class="text-center">
+            <h2 id="executionDetailsLabel" class="text-center ">Execution Details</h2>
+            <h4 id="executionDates"></h4>
+            <div id="executionDetailsLabel2" class="margin-s-b10">
+              The trading fees are included in the results. <span id="executionFeeRate"></span>
+            </div>
+            <div class="features alt text-left">
+              <section class="trade-section">
+                <h3><i class=" fas fa-rocket"></i>&nbsp;Performance</h3>
+                Total Return:&nbsp; <span id="executionTotalReturn"></span><br />
+                <div class="inline" id="executionMarketResDiv">
+                  Market Return:&nbsp; <span id="executionMarketRes"></span><br />
+                </div>
 
-				<div class="text-center margin-s-b30">
-					<div class="" style="font-size:small">Except for the Target, the bot executes MARKET ORDERS.</div>
-					<div class="margin-s-b10" style="font-size:small">When all BUY or SELL rules are met the bot will execute a MARKET BUY or SELL ORDER on the next candle open <a title="Info" onclick="ordersInfo()" href="#/"><i class="text-blue fa fa-info-circle"></i></a>. </div>
-					<a href="#/" id="saveStrategyBtn" onclick="saveStrategy()" class="button alt white">Save</a>
-					<a href="#/" onclick="closeNewStrategy()" class="button alt white">Cancel</a>
-					<div style="font-size:small" id="saveStrategyDisabled" class="display-none">* This strategy is currently running. Please stop the execution and then try to edit.</div>
-				</div>
-				<br>
-			</div>
-		</div>
+                Win/Loss Ratio:&nbsp;
+                <span id="executionWinLoss"></span><br />
+                Average gain/loss per trade:&nbsp; <span id="executionAvgWinLossPerTrade"></span><br />Net
+                Gain/Loss:&nbsp; <span id="executionResultWithUsd"></span><br />
+                Executed Trades:&nbsp; <span id="executionExecutedTrades"></span><br />
+              </section>
+              <section>
+                <h3><i class=" fas fa-cog"></i>&nbsp;Setup</h3>
+                Strategy:&nbsp; <span id="executionStrategyRes"></span><br />
+                Exchange:&nbsp; <span id="executionExchangeRes"></span><br />
+                Instrument:&nbsp;
+                <span id="executionInstrumentRes"></span>
+                <div id="executionPosSizeResDiv" class="inline">
+                  <br />
+                  Position Size:&nbsp; <span id="executionPosSizeRes"></span>
+                </div>
+                <div id="executionPosSizeResDiv2" class="inline">
+                  <br />
+                  Position Size:&nbsp; <span id="executionPosSizeRes2"></span>
+                </div>
+                <div id="executionMaxLossResDiv" class="inline">
+                  <br />
+                  Maximum Execution Loss:&nbsp; <span id="executionMasLossRes"></span>
+                </div>
+                <div id="executionEmailResDiv" class="inline">
+                  <br />
+                  Email:&nbsp; <span id="executionResEmail"></span>
+                </div>
+              </section>
+              <section class="trade-section">
+                <h3><i class=" fas fa-thumbs-up"></i>&nbsp;Winning Trades</h3>
+                Win Rate:&nbsp;<span id="executionWinningTradesP"></span><br />
+                Winning trades count:&nbsp;<span id="executionWinningCount"></span><br />
+                Average gain per trade:&nbsp;<span id="executionAvgGainPerWinning"></span><br />
+                Biggest gain:&nbsp;<span class="bold" id="executionBiggestGain"></span><br />
+              </section>
+              <section class="trade-section">
+                <h3><i class=" fas fa-thumbs-down"></i>&nbsp;Loosing Trades</h3>
+                Loose Rate:&nbsp;<span id="executionLoosingTradesP"></span><br />
+                Loosing trades count:&nbsp;<span id="executionLoosingCount"></span><br />
+                Average loss per trade:&nbsp;<span id="executionAvgLostPerWinning"></span><br />
+                Biggest loss:&nbsp;<span id="executionBiggestLost"></span><br />
+              </section>
+            </div>
 
-		<div id="executionResultsWindow" class="modal">
-			<div id="executionResultsWindowDiv">
-				<a class="close-modal" onclick="closeExecutionWindow()" href="#/"><i class="text-red fas fa-times"></i></a>
-				<div class="text-center">
-					<h2 id="executionDetailsLabel" class="text-center ">Execution Details </h2>
-					<h4 id="executionDates"></h4>
-					<div id="executionDetailsLabel2" class="margin-s-b10">The trading fees are included in the results. <span id="executionFeeRate"></span></div>
-					<div class="features alt text-left">
-						<section class="trade-section">
-							<h3><i class=" fas fa-rocket"></i>&nbsp;Performance</h3> Total Return:&nbsp;
-							<span id="executionTotalReturn"></span><br>
-							<div class="inline" id="executionMarketResDiv">Market Return:&nbsp;
-							<span id="executionMarketRes"></span><br></div>
-							 Win/Loss Ratio:&nbsp;
-							<span id="executionWinLoss"></span><br> Average gain/loss per trade:&nbsp;
-							<span id="executionAvgWinLossPerTrade"></span><br>Net Gain/Loss:&nbsp;
-							<span id="executionResultWithUsd"></span><br> Executed Trades:&nbsp;
-							<span id="executionExecutedTrades"></span><br>
-						</section>
-						<section>
-							<h3><i class=" fas fa-cog"></i>&nbsp;Setup</h3> Strategy:&nbsp;
-							<span id="executionStrategyRes"></span><br> Exchange:&nbsp;
-							<span id="executionExchangeRes"></span><br> Instrument:&nbsp;
-							<span id="executionInstrumentRes"></span>
-							<div id="executionPosSizeResDiv" class="inline"><br> Position Size:&nbsp;
-								<span id="executionPosSizeRes"></span></div>
-							<div id="executionPosSizeResDiv2" class="inline"><br> Position Size:&nbsp;
-								<span id="executionPosSizeRes2"></span></div>
-							<div id="executionMaxLossResDiv" class="inline"><br> Maximum Execution Loss:&nbsp;
-								<span id="executionMasLossRes"></span></div>
-							<div id="executionEmailResDiv" class="inline"><br> Email:&nbsp;
-								<span id="executionResEmail"></span></div>
-						</section>
-						<section class="trade-section">
-							<h3><i class=" fas fa-thumbs-up"></i>&nbsp;Winning Trades</h3> Win Rate:&nbsp;<span id="executionWinningTradesP"></span><br> Winning trades count:&nbsp;<span id="executionWinningCount"></span><br> Average gain per
-							trade:&nbsp;<span id="executionAvgGainPerWinning"></span><br> Biggest gain:&nbsp;<span class="bold" id="executionBiggestGain"></span><br>
-						</section>
-						<section class="trade-section">
-							<h3><i class=" fas fa-thumbs-down"></i>&nbsp;Loosing Trades</h3> Loose Rate:&nbsp;<span id="executionLoosingTradesP"></span><br> Loosing trades count:&nbsp;<span id="executionLoosingCount"></span><br> Average loss per trade:&nbsp;<span id="executionAvgLostPerWinning"></span><br>
-							Biggest loss:&nbsp;<span id="executionBiggestLost"></span><br>
-						</section>
-					</div>
+            <h3 id="executionTableLabel" class="text-center margin-s-b10">Executed Trades</h3>
+            <div class="table-wrapper">
+              <table id="executionStrategiesTable" class="alt"></table>
+            </div>
+            <div class="text-center margin-s-b30">
+              <a href="#/" onclick="closeExecutionWindow()" class="button alt white">Close</a>
+            </div>
+          </div>
+        </div>
+      </div>
 
-					<h3 id="executionTableLabel" class="text-center margin-s-b10">Executed Trades</h3>
-					<div class="table-wrapper">
-						<table id="executionStrategiesTable" class="alt">
-						</table>
-					</div>
-					<div class="text-center margin-s-b30">
-						<a href="#/" onclick="closeExecutionWindow()" class="button alt white">Close</a>
-					</div>
-				</div>
-			</div>
-		</div>
+      <div id="editExecutionWindow" class="modal alt">
+        <div>
+          <a class="close-modal" onclick="closeEditExecutionWindow()" href="#/"
+            ><i class="text-red fas fa-times"></i
+          ></a>
+          <div class="text-center">
+            <br />
+            <h2 class="text-center ">Edit Execution</h2>
+            <br />
+            <div class="features text-left">
+              <section>
+                <h3><i class=" fas fa-cog"></i>&nbsp;Setup</h3>
+                <span class="inline-block min-width5">Mode:&nbsp;</span>
+                <span class="bold" id="executionModeEdit"></span><br />
+                <span class="inline-block min-width5">Strategy:&nbsp;</span>
+                <span class="bold" id="executionStrategyEdit"></span><br />
+                <span class="inline-block min-width5">Exchange:&nbsp;</span>
+                <span class="bold" id="executionExchangeEdit"></span><br />
+                <span class="inline-block min-width5">Instrument:&nbsp;</span>
+                <span class="bold" id="executionInstrumentEdit"></span>
+                <div id="executionPosSizeEditDiv" class="inline">
+                  <br />
+                  <span class="inline-block min-width5">Trade Size:&nbsp;</span>
+                  <input
+                    style="width:200px;"
+                    onkeyup="fillPosSizeDetailsEdit('base')"
+                    autocomplete="off"
+                    class="search"
+                    id="executionPosSizeEdit"
+                    type="number"
+                    placeholder="Amount in Base Coin"
+                  />&nbsp;<span class="additional-field inline-block min-width5" id="tsQuotedCurrencyEdit"></span>
+                  <br />
+                  <span class="inline-block min-width5">&nbsp;</span>
+                  <input
+                    style="width:200px;"
+                    onkeyup="fillPosSizeDetailsEdit('quoted')"
+                    autocomplete="off"
+                    class="search"
+                    id="executionPosSizeEdit2"
+                    type="number"
+                    placeholder="Amount in Quoted Coin"
+                  />&nbsp;<span class="additional-field inline-block min-width5" id="tsQuotedCurrencyEdit2"></span>
+                </div>
 
-		<div id="editExecutionWindow" class="modal alt">
-			<div>
-				<a class="close-modal" onclick="closeEditExecutionWindow()" href="#/"><i class="text-red fas fa-times"></i></a>
-				<div class="text-center">
-					<br>
-					<h2 class="text-center ">Edit Execution</h2>
-					<br>
-					<div class="features text-left">
-						<section>
-							<h3><i class=" fas fa-cog"></i>&nbsp;Setup</h3> <span class="inline-block min-width5">Mode:&nbsp;</span>
-							<span class="bold" id="executionModeEdit"></span><br> <span class="inline-block min-width5">Strategy:&nbsp;</span>
-							<span class="bold" id="executionStrategyEdit"></span><br> <span class="inline-block min-width5">Exchange:&nbsp;</span>
-							<span class="bold" id="executionExchangeEdit"></span><br> <span class="inline-block min-width5">Instrument:&nbsp;</span>
-							<span class="bold" id="executionInstrumentEdit"></span>
-							<div id="executionPosSizeEditDiv" class="inline"><br> <span class="inline-block min-width5">Trade Size:&nbsp;</span>
-								<input style="width:200px;" onkeyup="fillPosSizeDetailsEdit('base')" autocomplete="off" class="search" id="executionPosSizeEdit" type="number" placeholder="Amount in Base Coin" />&nbsp;<span class="additional-field inline-block min-width5"
-								  id="tsQuotedCurrencyEdit"></span>
-								<br> <span class="inline-block min-width5">&nbsp;</span>
-								<input style="width:200px;" onkeyup="fillPosSizeDetailsEdit('quoted')" autocomplete="off" class="search" id="executionPosSizeEdit2" type="number" placeholder="Amount in Quoted Coin" />&nbsp;<span class="additional-field inline-block min-width5"
-								  id="tsQuotedCurrencyEdit2"></span>
+                <div id="executionMaxLosEditDiv" class="inline">
+                  <br />
+                  <span class="inline-block min-width5">Max Loss:&nbsp;</span>
+                  <input
+                    style="width:200px;"
+                    onkeyup="fillMaxLossDetailsEdit()"
+                    autocomplete="off"
+                    class="search"
+                    id="executionMaxLossEdit"
+                    type="number"
+                    placeholder="Max Loss"
+                  />&nbsp;<span class="additional-field inline-block min-width5" id="tsMaxLossCurrencyEdit"></span>
+                </div>
+                <div id="executionMailEditDiv" class="inline">
+                  <br />
+                  <span class="inline-block min-width5">Email:&nbsp;</span>
+                  <input
+                    style="width:200px;"
+                    autocomplete="off"
+                    class="search"
+                    id="executionEmailEdit"
+                    type="text"
+                    placeholder="email"
+                  />
+                </div>
+                <div id="executionFeeRateEditDiv" class="inline">
+                  <br /><span class="inline-block min-width5">Fee Rate %:&nbsp;</span>
+                  <input
+                    style="width:200px;"
+                    autocomplete="off"
+                    class="search"
+                    id="executionFeeRateEdit"
+                    type="number"
+                    placeholder="Fee Rate %"
+                  />
+                </div>
+                <div id="executionOpenTradeEditDiv" class="inline">
+                  <br /><span class="inline-block min-width5">Close Open Trade:</span>
+                  <a href="#/" id="closeOpenTradeBtn" class="button alt white">Close Trade</a>
+                </div>
+              </section>
+            </div>
 
-							</div>
+            <div class="text-center margin-s-b30">
+              <a href="#/" id="editExecutionSaveBtn" class="button alt white">Save</a>
+              <a href="#/" onclick="closeEditExecutionWindow()" class="button alt white">Close</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-							<div id="executionMaxLosEditDiv" class="inline"><br> <span class="inline-block min-width5">Max Loss:&nbsp;</span>
-								<input style="width:200px;" onkeyup="fillMaxLossDetailsEdit()" autocomplete="off" class="search" id="executionMaxLossEdit" type="number" placeholder="Max Loss" />&nbsp;<span class="additional-field inline-block min-width5" id="tsMaxLossCurrencyEdit"></span>
-							</div>
-							<div id="executionMailEditDiv" class="inline"><br> <span class="inline-block min-width5">Email:&nbsp;</span>
-								<input style="width:200px;" autocomplete="off" class="search" id="executionEmailEdit" type="text" placeholder="email" />
-							</div>
-							<div id="executionFeeRateEditDiv" class="inline"><br><span class="inline-block min-width5">Fee Rate %:&nbsp;</span>
-								<input style="width:200px;" autocomplete="off" class="search" id="executionFeeRateEdit" type="number" placeholder="Fee Rate %" />
-							</div>
-							<div id="executionOpenTradeEditDiv" class="inline"><br><span class="inline-block min-width5">Close Open Trade:</span>
-								<a href="#/" id="closeOpenTradeBtn" class="button alt white">Close Trade</a>
-							</div>
+    <!-- Footer -->
+    <footer id="footer" class="wrapper text-center">
+      <div class="inner">
+        <a href="https://www.facebook.com/EasyCryptoBot" target="_blank"> <i class="fab fa-facebook"></i></a
+        >&nbsp;&nbsp;
+        <a href="https://twitter.com/EasyCryptoBot" target="_blank"> <i class="fab fa-twitter"></i></a>&nbsp;&nbsp;
+        <a href="https://github.com/hristovsn/easy-crypto-bot" target="_blank"> <i class="fab fa-github"></i></a>
+        <div class="nowrap">
+          <i class="fas fa-envelope"></i>&nbsp;<span class="one-click-select">stefan@easycryptobot.com</span>&nbsp;
+        </div>
+        <a href="https://easycryptobot.com/terms.html" target="_blank">Terms &amp; Conditions</a><br />
+        &copy; Insentico Ltd. All rights reserved.
+      </div>
+    </footer>
 
-						</section>
-					</div>
+    <div id="modalConfirm" class="modal-small">
+      <div class="text-center">
+        <div></div>
+        <br />
+        <a id="modalConfirmOk" class="button alt white" href="#/">OK</a>
+        <a id="modalConfirmCancel" class="button alt white" href="#/">Cancel</a>
+      </div>
+    </div>
+    <div id="modalInfo" class="modal-small">
+      <div class="text-center">
+        <div></div>
+        <br />
+        <a id="modalInfoOk" class="button alt white" href="#/">OK</a>
+      </div>
+    </div>
+    <div class="text-center modal no-select" id="modalLoading">
+      <img
+        class="no-select"
+        style="width:150px;height:150px;margin:auto;"
+        src="assets/images/loading.gif"
+        alt="Loading.."
+      />
+    </div>
+    <!-- Scripts -->
+    <script>
+      window.$ = window.jQuery = require("./assets/js/jquery.min.js");
+    </script>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.scrollex.min.js"></script>
+    <script src="assets/js/jquery.scrolly.min.js"></script>
+    <script src="assets/js/skel.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/menu.js"></script>
+    <script src="assets/js/binance.js"></script>
+    <script src="assets/js/indicators.js"></script>
+    <script src="assets/js/backtest-strategy.js"></script>
+    <script src="assets/js/optimize.js"></script>
+    <script src="assets/js/backtest.js"></script>
+    <script src="assets/js/trade.js"></script>
+    <script>
+      fillDefaultStrategies();
+      checkEulaAccepted();
+      hourlyCheckForUpdates();
+      //getInteractiveContent();
+      //removeTmpFiles();
+      enablePowerSaveBlocker();
 
-					<div class="text-center margin-s-b30">
-						<a href="#/" id="editExecutionSaveBtn" class="button alt white">Save</a>
-						<a href="#/" onclick="closeEditExecutionWindow()" class="button alt white">Close</a>
-					</div>
-				</div>
-			</div>
-		</div>
+      function modalsClosed() {
+        if (
+          !$("#newStrategyWindow").is(":visible") &&
+          !$("#executionResultsWindow").is(":visible") &&
+          !$("#editExecutionWindow").is(":visible")
+        ) {
+          $("#wrapper").css("opacity", "1");
+          $("#wrapper").css("pointer-events", "auto");
+          $("#sidebar").css("opacity", "1");
+          $("#sidebar").css("pointer-events", "auto");
+          $("#footer").css("opacity", "1");
+          $("#footer").css("pointer-events", "auto");
+        } else {
+          $("#wrapper").css("opacity", "0.5");
+          $("#footer").css("opacity", "0.5");
+        }
+        $("#wrapperModals").css("opacity", "1");
+        $("#wrapperModals").css("pointer-events", "auto");
+      }
 
-	</div>
+      $("#modalConfirmOk").click(function(e) {
+        e.preventDefault();
+        modalsClosed();
+        $("#modalConfirm").css("display", "none");
 
-	<!-- Footer -->
-	<footer id="footer" class="wrapper text-center">
-		<div class="inner">
-			<a href="https://www.facebook.com/EasyCryptoBot" target="_blank"> <i class="fab fa-facebook"></i></a>&nbsp;&nbsp;
-			<a href="https://twitter.com/EasyCryptoBot" target="_blank"> <i class="fab fa-twitter"></i></a>&nbsp;&nbsp;
-			<a href="https://github.com/hristovsn/easy-crypto-bot" target="_blank"> <i class="fab fa-github"></i></a>
-			<div class="nowrap"><i class="fas fa-envelope"></i>&nbsp;<span class="one-click-select">stefan@easycryptobot.com</span>&nbsp;</div>
-			<a href="https://easycryptobot.com/terms.html" target="_blank">Terms &amp; Conditions</a><br> &copy; Insentico Ltd. All rights reserved.
-		</div>
-	</footer>
+        if (confirmOkFunc !== null) {
+          confirmOkFunc();
+          confirmOkFunc = null;
+        }
+      });
 
-	<div id="modalConfirm" class="modal-small">
-		<div class="text-center">
-			<div></div>
-			<br> <a id="modalConfirmOk" class="button alt white" href="#/">OK</a> <a id="modalConfirmCancel" class="button alt white" href="#/">Cancel</a>
-		</div>
-	</div>
-	<div id="modalInfo" class="modal-small">
-		<div class="text-center">
-			<div></div>
-			<br> <a id="modalInfoOk" class="button alt white" href="#/">OK</a>
-		</div>
-	</div>
-	<div class="text-center modal no-select" id="modalLoading">
-		<img class="no-select" style="width:150px;height:150px;margin:auto;" src="assets/images/loading.gif" alt="Loading.." />
-	</div>
-	<!-- Scripts -->
-	<script>
-		window.$ = window.jQuery = require('./assets/js/jquery.min.js');
-	</script>
-	<script src="assets/js/jquery.min.js"></script>
-	<script src="assets/js/jquery.scrollex.min.js"></script>
-	<script src="assets/js/jquery.scrolly.min.js"></script>
-	<script src="assets/js/skel.min.js"></script>
-	<script src="assets/js/util.js"></script>
-	<script src="assets/js/main.js"></script>
-	<script src="assets/js/menu.js"></script>
-	<script src="assets/js/binance.js"></script>
-	<script src="assets/js/indicators.js"></script>
-	<script src="assets/js/backtest-strategy.js"></script>
-	<script src="assets/js/optimize.js"></script>
-	<script src="assets/js/backtest.js"></script>
-	<script src="assets/js/trade.js"></script>
-	<script>
-		fillDefaultStrategies();
-		checkEulaAccepted();
-		hourlyCheckForUpdates();
-		//getInteractiveContent();
-		//removeTmpFiles();
-		enablePowerSaveBlocker();
+      $("#modalConfirmCancel").click(function(e) {
+        e.preventDefault();
+        modalsClosed();
+        $("#modalConfirm").css("display", "none");
 
-		function modalsClosed() {
-			if (!$('#newStrategyWindow').is(':visible') && !$('#executionResultsWindow').is(':visible') && !$('#editExecutionWindow').is(':visible')) {
-				$('#wrapper').css('opacity', '1');
-				$('#wrapper').css('pointer-events', 'auto');
-				$('#sidebar').css('opacity', '1');
-				$('#sidebar').css('pointer-events', 'auto');
-				$('#footer').css('opacity', '1');
-				$('#footer').css('pointer-events', 'auto');
-			} else {
-				$('#wrapper').css('opacity', '0.5');
-				$('#footer').css('opacity', '0.5');
-			}
-			$('#wrapperModals').css('opacity', '1');
-			$('#wrapperModals').css('pointer-events', 'auto');
-		}
+        if (confirmCalcelFunc !== null) {
+          confirmCalcelFunc();
+          confirmCalcelFunc = null;
+        }
+      });
 
-		$('#modalConfirmOk').click(function(e) {
-			e.preventDefault();
-			modalsClosed();
-			$('#modalConfirm').css('display', 'none');
+      $("#modalInfoOk").click(function(e) {
+        e.preventDefault();
+        modalsClosed();
+        $("#modalInfo").css("display", "none");
+        if (modalInfoFunc !== null) {
+          modalInfoFunc();
+          modalInfoFunc = null;
+        }
+      });
 
-			if (confirmOkFunc !== null) {
-				confirmOkFunc();
-				confirmOkFunc = null;
-			}
-		});
-
-		$('#modalConfirmCancel').click(function(e) {
-			e.preventDefault();
-			modalsClosed();
-			$('#modalConfirm').css('display', 'none');
-
-			if (confirmCalcelFunc !== null) {
-				confirmCalcelFunc();
-				confirmCalcelFunc = null;
-			}
-		});
-
-		$('#modalInfoOk').click(function(e) {
-			e.preventDefault();
-			modalsClosed();
-			$('#modalInfo').css('display', 'none');
-			if (modalInfoFunc !== null) {
-				modalInfoFunc();
-				modalInfoFunc = null;
-			}
-		});
-
-		$(document).ready(function() {
-			setTimeout(function() {
-				// Display the div containing the class "bottomdiv"
-				$("#updateAvailable").fadeIn();
-			}, 1000 * 1.8);
-		});
-	</script>
-</body>
-
+      $(document).ready(function() {
+        setTimeout(function() {
+          // Display the div containing the class "bottomdiv"
+          $("#updateAvailable").fadeIn();
+        }, 1000 * 1.8);
+      });
+    </script>
+  </body>
 </html>

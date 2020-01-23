@@ -185,7 +185,31 @@ function checkTradeRules(rules, closePricesAll, highPricesAll, lowPricesAll) {
         rulesMet++;
         continue;
       }
-    }
+    } else if (rule.indicator === "atr") {
+      let atr = calculateART(rule.period, closePrices);
+      if (atr === null) {
+        break;
+      }
+      if (rule.direction === "above") {
+        if (atr[0] > rule.value) {
+          rulesMet++;
+          continue;
+        }
+      } else if (rule.direction === "below" || rule.direction === "bellow") {
+        if (atr[0] < rule.value) {
+          rulesMet++;
+          continue;
+        }
+      } else if (rule.direction === "crossing") {
+        if (rule.crossDirection === "top to bottom" && atr[1] >= rule.value && atr[0] < rule.value) {
+          rulesMet++;
+          continue;
+        } else if (rule.crossDirection === "bottom to top" && atr[1] <= rule.value && atr[0] > rule.value) {
+          rulesMet++;
+          continue;
+        }
+      }
+    } 
   }
   return rulesMet === rules.length;
 }
@@ -321,6 +345,28 @@ function calculateMacd(period, period2, period3, closePrices) {
   }
 
   return [parseFloat(macd[macd.length - 2].toFixed(8)), parseFloat(macd[macd.length - 1].toFixed(8)), signal];
+}
+
+function calculateART(atrPeriod, closePrices) {
+  let periodsToUse = 300;
+  if (atrPeriod < 150) {
+    periodsToUse = 250;
+  } else if (atrPeriod < 100) {
+    periodsToUse = 200;
+  } else if (atrPeriod < 50) {
+    periodsToUse = 100;
+  }
+
+  if (closePrices.length <= atrPeriod || closePrices.length < periodsToUse) {
+    return null;
+  }
+  let multiplier = 2 / (atrPeriod + 1);
+  let atrPrev = closePrices[closePrices.length - periodsToUse];
+  for (let i = closePrices.length - (periodsToUse - 1); i < closePrices.length - 1; i++) {
+    atrPrev = (closePrices[i] - atrPrev) * multiplier + atrPrev;
+  }
+  let atr = (closePrices[closePrices.length - 1] - atrPrev) * multiplier + atrPrev;
+  return [parseFloat(atrPrev.toFixed(8)), parseFloat(atr.toFixed(8))];
 }
 
 function calculateBB(period, stdDev, closePrices) {

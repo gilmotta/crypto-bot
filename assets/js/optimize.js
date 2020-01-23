@@ -22,9 +22,7 @@ async function opInstrumentKeyup() {
 
     if (instruments !== null) {
       let instrumentsToAdd = "";
-      let search = $("#opInstrumentSearch")
-        .val()
-        .toLowerCase();
+      let search = $("#opInstrumentSearch").val().toLowerCase();
       Object.keys(instruments).forEach(function(key) {
         if (key.toLowerCase().indexOf(search) != -1) {
           lastKey = key.toLowerCase();
@@ -120,15 +118,11 @@ async function runOptimize() {
   $("#runOptBtn").addClass("disabled");
   if (hasTradingStrategies()) {
     let continueExecution = 0;
-    openModalConfirm(
-      '<h3>Warning</h3><div style="text-align:justify">You have realtime strategies running under Trade & Alerts tab. It is highly recommended to pause them before using the optimization feature, as it consumes a lot of your PC resources and the realtime execution may not be executed in time!</div><br><div class="text-center">Continue anyway?</div>',
-      function() {
-        continueExecution = 1;
-      },
-      function() {
-        continueExecution = -1;
-      }
-    );
+    openModalConfirm('<h3>Warning</h3><div style="text-align:justify">You have realtime strategies running under Trade & Alerts tab. It is highly recommended to pause them before using the optimization feature, as it consumes a lot of your PC resources and the realtime execution may not be executed in time!</div><br><div class="text-center">Continue anyway?</div>', function() {
+      continueExecution = 1;
+    }, function() {
+      continueExecution = -1;
+    });
 
     while (continueExecution === 0) {
       await sleep(500);
@@ -143,9 +137,7 @@ async function runOptimize() {
   $("#opCancelBtn").removeClass("disabled");
   let strategyName = $("#opStrategyCombobox").text();
   let exchange = $("#opExchangeCombobox").text();
-  let instrument = $("#opInstrumentSearch")
-    .val()
-    .toUpperCase();
+  let instrument = $("#opInstrumentSearch").val().toUpperCase();
   feeRate = $("#opFeeSearch").val();
   if (strategyName === "Choose Strategy") {
     openModalInfo("Please Choose a Strategy!");
@@ -231,21 +223,14 @@ async function runOptimize() {
       return;
     }
 
-    if (
-      $("#opChangeStoplossFine").is(":checked") &&
-      (strategy.stoploss == undefined || strategy.stoploss == null || isNaN(strategy.stoploss)) &&
-      (strategy.trailingSl == undefined || strategy.trailingSl == null || isNaN(strategy.trailingSl))
-    ) {
+    if ($("#opChangeStoplossFine").is(":checked") && (strategy.stoploss == undefined || strategy.stoploss == null || isNaN(strategy.stoploss)) && (strategy.trailingSl == undefined || strategy.trailingSl == null || isNaN(strategy.trailingSl))) {
       openModalInfo("The Fine Tune Stoploss option works only for strategies with a stoploss or a trailing stoploss.");
       or = false;
       $("#runOptBtn").removeClass("disabled");
       return;
     }
 
-    if (
-      $("#opChangeTargetFine").is(":checked") &&
-      (strategy.target == undefined || strategy.target == null || isNaN(strategy.target))
-    ) {
+    if ($("#opChangeTargetFine").is(":checked") && (strategy.target == undefined || strategy.target == null || isNaN(strategy.target))) {
       openModalInfo("The Fine Tune Target option works only for strategies with a target.");
       or = false;
       $("#runOptBtn").removeClass("disabled");
@@ -262,9 +247,7 @@ async function runOptimize() {
     $("#opResultNoTrades").hide();
     $("#opExecInfo").hide();
     $("#opResultDiv").show();
-    $("#opStrategiesTable").html(
-      "<thead><tr><td>Strategy</td><td>Total Return</td><td>Max Drawdown</td><td>Winning %</td><td>Avg. Trade</td><td>Best Trade</td><td>Worst Trade</td><td>Trades N.</td><td>Save</td></tr></thead><tbody>"
-    );
+    $("#opStrategiesTable").html("<thead><tr><td>Strategy</td><td>Total Return</td><td>Max Drawdown</td><td>Winning %</td><td>Avg. Trade</td><td>Best Trade</td><td>Worst Trade</td><td>Trades N.</td><td>Save</td></tr></thead><tbody>");
     $("#opCancelDiv").show();
 
     timeframes = getTimeframes(strategy);
@@ -279,11 +262,7 @@ async function runOptimize() {
 
     let fieldsToChange = calculateFieldsToChange(strategy);
     if (fieldsToChange > 20) {
-      openModalInfo(
-        "Your strategy contains too many input fields (" +
-          fieldsToChange +
-          ") to be optimized. The maximum allowed number is 20."
-      );
+      openModalInfo("Your strategy contains too many input fields (" + fieldsToChange + ") to be optimized. The maximum allowed number is 20.");
       $("#runOptBtn").removeClass("disabled");
       $("#opRunning").hide();
       $("#opResult").hide();
@@ -293,25 +272,16 @@ async function runOptimize() {
 
     useTrailingStop = strategy.trailingSl !== null && !isNaN(strategy.trailingSl);
     useTrailingTarget = strategy.ttarget !== null && !isNaN(strategy.ttarget);
-    if (strategy.ttarget != null && strategy.ttarget != undefined) ticks = {};
+    if (strategy.ttarget != null && strategy.ttarget != undefined)
+      ticks = {};
     for (let tf of timeframes) {
-      let tfTicks = await getBinanceTicks(
-        instrument,
-        getShortTimeframe(tf),
-        getStartDate(tf, startDate),
-        endDate,
-        false
-      );
+      let tfTicks = await getBinanceTicks(instrument, getShortTimeframe(tf), getStartDate(tf, startDate), endDate, false);
       if (tfTicks === null) {
         $("#runOptBtn").removeClass("disabled");
         $("#opRunning").hide();
         $("#opResult").hide();
         if (!opExecutionCanceled) {
-          openModalInfo(
-            "Could not optain data from " +
-              exchange +
-              " for the given period. The period may be too long. Please try with smaller period or try again later!"
-          );
+          openModalInfo("Could not optain data from " + exchange + " for the given period. The period may be too long. Please try with smaller period or try again later!");
         }
         or = false;
         return;
@@ -356,11 +326,15 @@ async function runOptimize() {
     //Initialize webworkers
     let cpus = os.cpus().length;
 
-    let maxCPUs = cpus > 1 ? cpus - 1 : 1;
+    let maxCPUs = cpus > 1
+      ? cpus - 1
+      : 1;
     if ($("#opOneCore").is(":checked")) {
       maxOpWorkers = 1;
     } else if ($("#opHalfCores").is(":checked")) {
-      maxOpWorkers = cpus > 1 ? cpus / 2 : 1;
+      maxOpWorkers = cpus > 1
+        ? cpus / 2
+        : 1;
     } else {
       maxOpWorkers = maxCPUs;
     }
@@ -368,122 +342,112 @@ async function runOptimize() {
     if (!webWorkersInitialized) {
       for (let i = 0; i < maxCPUs; i++) {
         opExecutionWorkers[i] = new Worker("./assets/js/optimize-execution.js");
-        opExecutionWorkers[i].addEventListener(
-          "error",
-          async function(e) {
-            log("error", "opExecutionWorkers.EventListener error", e.message + "<br>" + e.filename + " " + e.lineno);
-            openModalInfo("Internal Error Occurred!<br>" + e.message + "<br>" + e.filename + " " + e.lineno);
-          },
-          false
-        );
-        opExecutionWorkers[i].addEventListener(
-          "message",
-          async function(e) {
-            try {
-              if (typeof e.data === "string" && e.data.startsWith("ERR")) {
-                log("error", "opExecutionWorkers.EventListener error", e.data);
-                openModalInfo("Internal Error Occurred!<br>" + e.data);
-                return;
-              } else if (e.data instanceof Array && e.data[0] === "STARTED") {
-                let nextStrategy = await getNextOpStrategy();
-                if (nextStrategy !== null) {
-                  try {
-                    await opWorkerTerminateMutex.lock();
-                    if (opExecutionCanceled) {
-                      return;
-                    }
-                    if (opExecutionWorkers[e.data[1]] !== undefined) {
-                      opExecutionWorkers[e.data[1]].postMessage(["STRATEGY", nextStrategy]);
-                    }
-                  } finally {
-                    opWorkerTerminateMutex.release();
-                  }
-                }
-              } else if (e.data instanceof Array && e.data[0] === "STOPPED") {
+        opExecutionWorkers[i].addEventListener("error", async function(e) {
+          log("error", "opExecutionWorkers.EventListener error", e.message + "<br>" + e.filename + " " + e.lineno);
+          openModalInfo("Internal Error Occurred!<br>" + e.message + "<br>" + e.filename + " " + e.lineno);
+        }, false);
+        opExecutionWorkers[i].addEventListener("message", async function(e) {
+          try {
+            if (typeof e.data === "string" && e.data.startsWith("ERR")) {
+              log("error", "opExecutionWorkers.EventListener error", e.data);
+              openModalInfo("Internal Error Occurred!<br>" + e.data);
+              return;
+            } else if (e.data instanceof Array && e.data[0] === "STARTED") {
+              let nextStrategy = await getNextOpStrategy();
+              if (nextStrategy !== null) {
                 try {
-                  await runningWorkersMutex.lock();
-                  runningWorkiers--;
-                } finally {
-                  runningWorkersMutex.release();
-                }
-              } else if (e.data instanceof Array && e.data[0] === "RESULT") {
-                let nextStrategy = await getNextOpStrategy();
-                if (nextStrategy !== null) {
-                  try {
-                    await opWorkerTerminateMutex.lock();
-                    if (opExecutionCanceled) {
-                      return;
-                    }
-                    if (opExecutionWorkers[e.data[1]] !== undefined) {
-                      opExecutionWorkers[e.data[1]].postMessage(["STRATEGY", nextStrategy]);
-                    }
-                  } finally {
-                    opWorkerTerminateMutex.release();
-                  }
-                }
-                let completed = await addOpResult(e.data[2]);
-
-                let percentCompleted =
-                  (100 / (ftmc + 1)) * ft + (completed / strategyVariations.length) * (100 / (ftmc + 1));
-                if (percentCompleted > 100) {
-                  percentCompleted = 100;
-                }
-
-                let lap = 2;
-                //if (percentCompleted > (100 / (ftmc + 1))) {
-                if (etaLastDate == null) {
-                  etaLastDate = new Date();
-                  etaLastNum = percentCompleted;
-                } else if (etaLastNum + lap <= percentCompleted) {
-                  let dateNow = new Date();
-                  let dateDiff =
-                    (Math.abs((dateNow.getTime() - etaLastDate.getTime()) / 1000) * (100 - percentCompleted)) / lap;
-
-                  let minutes = Math.floor(dateDiff / 60);
-                  let seconds = dateDiff % 60;
-                  if (minutes > 0) {
-                    if (seconds > 30) {
-                      minutes++;
-                    }
-                    if (minutes === 1) {
-                      etaStr = "~ " + minutes.toFixed(0) + " min";
-                    } else {
-                      etaStr = "~ " + minutes.toFixed(0) + " mins";
-                    }
-                  } else {
-                    etaStr = "< 1 min";
-                  }
-
-                  etaLastDate = new Date();
-                  etaLastNum = percentCompleted;
-                  $("#opRunRemaining").html("time left " + etaStr);
-                }
-                //}
-                $("#opRunPercent").html("Optimization Execution: " + percentCompleted.toFixed(0) + "%");
-
-                if (completed === strategyVariations.length) {
+                  await opWorkerTerminateMutex.lock();
                   if (opExecutionCanceled) {
                     return;
                   }
-                  if (ft < ftmc) {
-                    doftOfResult();
-                  } else {
-                    fillOptimizationResult(marketReturn);
+                  if (opExecutionWorkers[e.data[1]] !== undefined) {
+                    opExecutionWorkers[e.data[1]].postMessage(["STRATEGY", nextStrategy]);
                   }
+                } finally {
+                  opWorkerTerminateMutex.release();
                 }
-              } else {
-                log("error", "opExecutionWorkers.EventListener error", e.data);
-                openModalInfo("Unexpected Internal Error Occurred!<br>" + e.data);
               }
-            } catch (err) {
-              log("error", "runOptimize", err.stack);
-              openModalInfo("Internal Error Occurred!<br>" + err.stack);
-            } finally {
-              executionOpMutex.release();
+            } else if (e.data instanceof Array && e.data[0] === "STOPPED") {
+              try {
+                await runningWorkersMutex.lock();
+                runningWorkiers--;
+              } finally {
+                runningWorkersMutex.release();
+              }
+            } else if (e.data instanceof Array && e.data[0] === "RESULT") {
+              let nextStrategy = await getNextOpStrategy();
+              if (nextStrategy !== null) {
+                try {
+                  await opWorkerTerminateMutex.lock();
+                  if (opExecutionCanceled) {
+                    return;
+                  }
+                  if (opExecutionWorkers[e.data[1]] !== undefined) {
+                    opExecutionWorkers[e.data[1]].postMessage(["STRATEGY", nextStrategy]);
+                  }
+                } finally {
+                  opWorkerTerminateMutex.release();
+                }
+              }
+              let completed = await addOpResult(e.data[2]);
+
+              let percentCompleted = (100 / (ftmc + 1)) * ft + (completed / strategyVariations.length) * (100 / (ftmc + 1));
+              if (percentCompleted > 100) {
+                percentCompleted = 100;
+              }
+
+              let lap = 2;
+              //if (percentCompleted > (100 / (ftmc + 1))) {
+              if (etaLastDate == null) {
+                etaLastDate = new Date();
+                etaLastNum = percentCompleted;
+              } else if (etaLastNum + lap <= percentCompleted) {
+                let dateNow = new Date();
+                let dateDiff = (Math.abs((dateNow.getTime() - etaLastDate.getTime()) / 1000) * (100 - percentCompleted)) / lap;
+
+                let minutes = Math.floor(dateDiff / 60);
+                let seconds = dateDiff % 60;
+                if (minutes > 0) {
+                  if (seconds > 30) {
+                    minutes++;
+                  }
+                  if (minutes === 1) {
+                    etaStr = "~ " + minutes.toFixed(0) + " min";
+                  } else {
+                    etaStr = "~ " + minutes.toFixed(0) + " mins";
+                  }
+                } else {
+                  etaStr = "< 1 min";
+                }
+
+                etaLastDate = new Date();
+                etaLastNum = percentCompleted;
+                $("#opRunRemaining").html("time left " + etaStr);
+              }
+              //}
+              $("#opRunPercent").html("Optimization Execution: " + percentCompleted.toFixed(0) + "%");
+
+              if (completed === strategyVariations.length) {
+                if (opExecutionCanceled) {
+                  return;
+                }
+                if (ft < ftmc) {
+                  doftOfResult();
+                } else {
+                  fillOptimizationResult(marketReturn);
+                }
+              }
+            } else {
+              log("error", "opExecutionWorkers.EventListener error", e.data);
+              openModalInfo("Unexpected Internal Error Occurred!<br>" + e.data);
             }
-          },
-          false
-        );
+          } catch (err) {
+            log("error", "runOptimize", err.stack);
+            openModalInfo("Internal Error Occurred!<br>" + err.stack);
+          } finally {
+            executionOpMutex.release();
+          }
+        }, false);
       }
       webWorkersInitialized = true;
     }
@@ -495,7 +459,14 @@ async function runOptimize() {
           or = false;
           return;
         }
-        opExecutionWorkers[i].postMessage(["INITIALIZE", i, timeframes, startDate, ticks, feeRate]);
+        opExecutionWorkers[i].postMessage([
+          "INITIALIZE",
+          i,
+          timeframes,
+          startDate,
+          ticks,
+          feeRate
+        ]);
         runningWorkiers++;
       } finally {
         opWorkerTerminateMutex.release();
@@ -557,7 +528,9 @@ function countRuleFields(rule) {
 }
 
 function calculateFieldsToChange(strategy) {
-  let fieldsToChange = changeStoploss ? 1 : 0;
+  let fieldsToChange = changeStoploss
+    ? 1
+    : 0;
   if (changeTarget) {
     fieldsToChange++;
     if (useTrailingTarget) {
@@ -575,13 +548,7 @@ function calculateFieldsToChange(strategy) {
 }
 
 function rulesAreSame(rule1, rule2) {
-  return (
-    rule1.period == rule2.period &&
-    rule1.period2 == rule2.period2 &&
-    rule1.period3 == rule2.period3 &&
-    rule1.value == rule2.value &&
-    rule1.period4 == rule2.period4
-  );
+  return (rule1.period == rule2.period && rule1.period2 == rule2.period2 && rule1.period3 == rule2.period3 && rule1.value == rule2.value && rule1.period4 == rule2.period4);
 }
 
 function pushNewStrategyVariation(variations, strategy) {
@@ -602,12 +569,7 @@ function pushNewStrategyVariation(variations, strategy) {
         }
       }
       if (allSellRulesAreSame) {
-        if (
-          strategyTmp.stoploss == strategy.stoploss &&
-          strategyTmp.trailingSl == strategy.trailingSl &&
-          strategyTmp.target == strategy.target &&
-          strategyTmp.ttarget == strategy.ttarget
-        ) {
+        if (strategyTmp.stoploss == strategy.stoploss && strategyTmp.trailingSl == strategy.trailingSl && strategyTmp.target == strategy.target && strategyTmp.ttarget == strategy.ttarget) {
           return false;
         }
       }
@@ -648,8 +610,12 @@ function compareStrategyResults(a, b) {
   let ratioB = null;
   //Max return for lowest risk
   if (optType === "riskReward") {
-    ratioA = a.maxDrawdown != 0 ? a.totalReturn / Math.abs(a.maxDrawdown) : a.totalReturn;
-    ratioB = b.maxDrawdown != 0 ? b.totalReturn / Math.abs(b.maxDrawdown) : b.totalReturn;
+    ratioA = a.maxDrawdown != 0
+      ? a.totalReturn / Math.abs(a.maxDrawdown)
+      : a.totalReturn;
+    ratioB = b.maxDrawdown != 0
+      ? b.totalReturn / Math.abs(b.maxDrawdown)
+      : b.totalReturn;
   } else if (optType === "return") {
     ratioA = a.totalReturn;
     ratioB = b.totalReturn;
@@ -662,26 +628,34 @@ function compareStrategyResults(a, b) {
     let avgTradesCountA = a.executedTrades - 1;
     let avgTradesCountB = b.executedTrades - 1;
 
-    let avgTradeWithoutBestTradeA = avgTradesCountA > 0 ? returnWithoutBestTradeA / avgTradesCountA : 0;
-    let avgTradeWithoutBestTradeB = avgTradesCountB > 0 ? returnWithoutBestTradeB / avgTradesCountB : 0;
+    let avgTradeWithoutBestTradeA = avgTradesCountA > 0
+      ? returnWithoutBestTradeA / avgTradesCountA
+      : 0;
+    let avgTradeWithoutBestTradeB = avgTradesCountB > 0
+      ? returnWithoutBestTradeB / avgTradesCountB
+      : 0;
 
-    let totalReturnToMaxDrawdownA =
-      a.maxDrawdown != 0 ? returnWithoutBestTradeA / Math.abs(a.maxDrawdown) : returnWithoutBestTradeA;
-    let totalReturnToMaxDrawdownB =
-      b.maxDrawdown != 0 ? returnWithoutBestTradeB / Math.abs(b.maxDrawdown) : returnWithoutBestTradeB;
+    let totalReturnToMaxDrawdownA = a.maxDrawdown != 0
+      ? returnWithoutBestTradeA / Math.abs(a.maxDrawdown)
+      : returnWithoutBestTradeA;
+    let totalReturnToMaxDrawdownB = b.maxDrawdown != 0
+      ? returnWithoutBestTradeB / Math.abs(b.maxDrawdown)
+      : returnWithoutBestTradeB;
 
-    ratioA =
-      totalReturnToMaxDrawdownA < 0 && avgTradeWithoutBestTradeA < 0
-        ? -1 * totalReturnToMaxDrawdownA * avgTradeWithoutBestTradeA
-        : totalReturnToMaxDrawdownA * avgTradeWithoutBestTradeA;
+    ratioA = totalReturnToMaxDrawdownA < 0 && avgTradeWithoutBestTradeA < 0
+      ? -1 * totalReturnToMaxDrawdownA * avgTradeWithoutBestTradeA
+      : totalReturnToMaxDrawdownA * avgTradeWithoutBestTradeA;
 
-    ratioB =
-      totalReturnToMaxDrawdownB < 0 && avgTradeWithoutBestTradeB < 0
-        ? -1 * totalReturnToMaxDrawdownB * avgTradeWithoutBestTradeB
-        : totalReturnToMaxDrawdownB * avgTradeWithoutBestTradeB;
+    ratioB = totalReturnToMaxDrawdownB < 0 && avgTradeWithoutBestTradeB < 0
+      ? -1 * totalReturnToMaxDrawdownB * avgTradeWithoutBestTradeB
+      : totalReturnToMaxDrawdownB * avgTradeWithoutBestTradeB;
   }
 
-  return ratioA < ratioB ? 1 : ratioB < ratioA ? -1 : 0;
+  return ratioA < ratioB
+    ? 1
+    : ratioB < ratioA
+      ? -1
+      : 0;
 }
 
 async function doftOfResult() {
@@ -718,7 +692,14 @@ async function doftOfResult() {
           or = false;
           return;
         }
-        opExecutionWorkers[i].postMessage(["INITIALIZE", i, timeframes, startDate, ticks, feeRate]);
+        opExecutionWorkers[i].postMessage([
+          "INITIALIZE",
+          i,
+          timeframes,
+          startDate,
+          ticks,
+          feeRate
+        ]);
         runningWorkiers++;
       } finally {
         opWorkerTerminateMutex.release();
@@ -860,9 +841,7 @@ function getRuleVariations(rule) {
         for (let period3 of sp3) {
           for (let period4 of sp4) {
             for (let value of sv) {
-              ruleVariations.push(
-                createRuleVariation(rule, period, value, rule.crossDirection, null, period2, period3, period4)
-              );
+              ruleVariations.push(createRuleVariation(rule, period, value, rule.crossDirection, null, period2, period3, period4));
             }
           }
         }
@@ -1077,9 +1056,7 @@ function getRuleVariationsft(rule) {
         if (periodToUse >= periodToUse2) {
           continue;
         }
-        ruleVariations.push(
-          createRuleVariation(rule, periodToUse, null, rule.crossDirection, rule.type2, periodToUse2)
-        );
+        ruleVariations.push(createRuleVariation(rule, periodToUse, null, rule.crossDirection, rule.type2, periodToUse2));
       }
     }
   } else if (rule.indicator === "rsi") {
@@ -1118,17 +1095,7 @@ function getRuleVariationsft(rule) {
                 if (valueToUse <= 0) {
                   valueToUse = 0.1;
                 }
-                ruleVariations.push(
-                  createRuleVariation(
-                    rule,
-                    periodToUse,
-                    fixNumber(valueToUse, 2),
-                    null,
-                    null,
-                    periodToUse2,
-                    periodToUse3
-                  )
-                );
+                ruleVariations.push(createRuleVariation(rule, periodToUse, fixNumber(valueToUse, 2), null, null, periodToUse2, periodToUse3));
               }
             }
           }
@@ -1146,9 +1113,7 @@ function getRuleVariationsft(rule) {
               if (periodToUse3 < 2) {
                 continue;
               }
-              ruleVariations.push(
-                createRuleVariation(rule, periodToUse, null, rule.crossDirection, null, periodToUse2, periodToUse3)
-              );
+              ruleVariations.push(createRuleVariation(rule, periodToUse, null, rule.crossDirection, null, periodToUse2, periodToUse3));
             }
           }
         }
@@ -1161,9 +1126,7 @@ function getRuleVariationsft(rule) {
           if (periodToUse >= periodToUse2 || periodToUse < 2) {
             continue;
           }
-          ruleVariations.push(
-            createRuleVariation(rule, periodToUse, null, rule.crossDirection, null, periodToUse2, null)
-          );
+          ruleVariations.push(createRuleVariation(rule, periodToUse, null, rule.crossDirection, null, periodToUse2, null));
         }
       }
     }
@@ -1184,9 +1147,7 @@ function getRuleVariationsft(rule) {
             if (valueToUse <= 0) {
               valueToUse = 0.1;
             }
-            ruleVariations.push(
-              createRuleVariation(rule, periodToUse, fixNumber(valueToUse, 2), null, null, periodToUse2, null)
-            );
+            ruleVariations.push(createRuleVariation(rule, periodToUse, fixNumber(valueToUse, 2), null, null, periodToUse2, null));
           }
         }
       }
@@ -1201,9 +1162,7 @@ function getRuleVariationsft(rule) {
           if (periodToUse2 <= 0) {
             continue;
           }
-          ruleVariations.push(
-            createRuleVariation(rule, periodToUse, null, rule.crossDirection, null, periodToUse2, null)
-          );
+          ruleVariations.push(createRuleVariation(rule, periodToUse, null, rule.crossDirection, null, periodToUse2, null));
         }
       }
     }
@@ -1230,17 +1189,7 @@ function getRuleVariationsft(rule) {
             } else if (valueToUse >= 100) {
               valueToUse = 99;
             }
-            ruleVariations.push(
-              createRuleVariation(
-                rule,
-                periodToUse,
-                fixNumber(valueToUse, 2),
-                rule.crossDirection,
-                null,
-                periodToUse2,
-                periodToUse3
-              )
-            );
+            ruleVariations.push(createRuleVariation(rule, periodToUse, fixNumber(valueToUse, 2), rule.crossDirection, null, periodToUse2, periodToUse3));
           }
         }
       }
@@ -1273,18 +1222,7 @@ function getRuleVariationsft(rule) {
               } else if (valueToUse >= 100) {
                 valueToUse = 99;
               }
-              ruleVariations.push(
-                createRuleVariation(
-                  rule,
-                  periodToUse,
-                  fixNumber(valueToUse, 2),
-                  rule.crossDirection,
-                  null,
-                  periodToUse2,
-                  periodToUse3,
-                  periodToUse4
-                )
-              );
+              ruleVariations.push(createRuleVariation(rule, periodToUse, fixNumber(valueToUse, 2), rule.crossDirection, null, periodToUse2, periodToUse3, periodToUse4));
             }
           }
         }
@@ -1555,88 +1493,6 @@ function createStrategyVariationWithSellRules(finalStrategiesList, strategiesWit
   }
 }
 
-function createStrategyVariationWithTargetRules(finalStrategiesList, strategiesWithBuySellOnly, ft) {
-  let targets = [];
-  let ttargets = [];
-  if (changeTargetFine) {
-    switch (ft) {
-      case 0:
-        targets = [5];
-        ttargets = [-0.7, 0, 0.7];
-        break;
-      case 1:
-        targets = [1];
-        ttargets = [-0.4, 0.4];
-        break;
-      case 2:
-        targets = [1];
-        ttargets = [-0.2, 0.2];
-        break;
-      case 3:
-        targets = [1];
-        ttargets = [-0.15, 0.15];
-        break;
-      case 4:
-        targets = [1];
-        ttargets = [-0.03, 0.03];
-        break;
-      case 5:
-        targets = [1];
-        ttargets = [-0.01, 0.01];
-        break;
-    }
-  } else {
-    switch (ft) {
-      case 0:
-        targets = targetsft0;
-        ttargets = ttargetsft0;
-        break;
-      case 1:
-        targets = targetsft1;
-        ttargets = ttargetsft1;
-        break;
-      case 2:
-        targets = targetsft2;
-        ttargets = ttargetsft2;
-        break;
-      case 3:
-        targets = targetsft3;
-        ttargets = ttargetsft3;
-        break;
-      case 4:
-        targets = targetsft4;
-        ttargets = ttargetsft4;
-        break;
-      case 5:
-        targets = targetsft5;
-        ttargets = ttargetsft5;
-        break;
-      case 6:
-        targets = targetsft6;
-        ttargets = ttargetsft6;
-        break;
-      default:
-        break;
-    }
-  }
-  for (let target of targets) {
-    for (let strategy of strategiesWithBuySellOnly) {
-      if (useTrailingTarget) {
-        for (let ttarget of ttargets) {
-          let newStrategy = createStrategyWithTarget(target, ttarget, strategy, ft);
-          if (newStrategy != null) {
-            finalStrategiesList.push(newStrategy);
-          }
-        }
-      } else {
-        let newStrategy = createStrategyWithTarget(target, null, strategy, ft);
-        finalStrategiesList.push(newStrategy);
-      }
-    }
-  }
-  return finalStrategiesList;
-}
-
 function createStrategyWithTarget(target, ttarget, strategy, ft) {
   let newStrategy = {};
   newStrategy.name = strategy.name;
@@ -1695,40 +1551,21 @@ async function getStrategyVariations(strategy, ft) {
                   if (buyRulesVariations.length > 4) {
                     for (let rule5Variations of buyRulesVariations[4]) {
                       counter = await incrementCounterWithSleep(counter);
-                      strategiesWithBuyRuleVariations.push(
-                        createStrategyVariationWithBuyRules(strategy, [
-                          ruleVariations,
-                          rule2Variations,
-                          rule3Variations,
-                          rule4Variations,
-                          rule5Variations
-                        ])
-                      );
+                      strategiesWithBuyRuleVariations.push(createStrategyVariationWithBuyRules(strategy, [ruleVariations, rule2Variations, rule3Variations, rule4Variations, rule5Variations]));
                     }
                   } else {
                     counter = await incrementCounterWithSleep(counter);
-                    strategiesWithBuyRuleVariations.push(
-                      createStrategyVariationWithBuyRules(strategy, [
-                        ruleVariations,
-                        rule2Variations,
-                        rule3Variations,
-                        rule4Variations
-                      ])
-                    );
+                    strategiesWithBuyRuleVariations.push(createStrategyVariationWithBuyRules(strategy, [ruleVariations, rule2Variations, rule3Variations, rule4Variations]));
                   }
                 }
               } else {
                 counter = await incrementCounterWithSleep(counter);
-                strategiesWithBuyRuleVariations.push(
-                  createStrategyVariationWithBuyRules(strategy, [ruleVariations, rule2Variations, rule3Variations])
-                );
+                strategiesWithBuyRuleVariations.push(createStrategyVariationWithBuyRules(strategy, [ruleVariations, rule2Variations, rule3Variations]));
               }
             }
           } else {
             counter = await incrementCounterWithSleep(counter);
-            strategiesWithBuyRuleVariations.push(
-              createStrategyVariationWithBuyRules(strategy, [ruleVariations, rule2Variations])
-            );
+            strategiesWithBuyRuleVariations.push(createStrategyVariationWithBuyRules(strategy, [ruleVariations, rule2Variations]));
           }
         }
       } else {
@@ -1739,68 +1576,28 @@ async function getStrategyVariations(strategy, ft) {
     if (sellRulesVariations.length !== 0) {
       for (let ruleVariations of sellRulesVariations[0]) {
         if (sellRulesVariations.length > 1) {
-          for (let rule2Variations of sellRulesVariations[1]) {
-            if (sellRulesVariations.length > 2) {
-              for (let rule3Variations of sellRulesVariations[2]) {
-                if (sellRulesVariations.length > 3) {
-                  for (let rule4Variations of sellRulesVariations[3]) {
-                    counter = await incrementCounterWithSleep(counter);
-                    createStrategyVariationWithSellRules(
-                      strategiesWithBuySellRuleVariations,
-                      strategiesWithBuyRuleVariations,
-                      [ruleVariations, rule2Variations, rule3Variations, rule4Variations]
-                    );
-                  }
-                } else {
-                  counter = await incrementCounterWithSleep(counter);
-                  createStrategyVariationWithSellRules(
-                    strategiesWithBuySellRuleVariations,
-                    strategiesWithBuyRuleVariations,
-                    [ruleVariations, rule2Variations, rule3Variations]
-                  );
-                  break;
-                }
-              }
+          if (sellRulesVariations.length > 2) {
+            if (sellRulesVariations.length > 3) {
+              counter = await incrementCounterWithSleep(counter);
+              createStrategyVariationWithSellRules(strategiesWithBuySellRuleVariations, strategiesWithBuyRuleVariations, [ruleVariations, rule2Variations, rule3Variations, rule4Variations]);
             } else {
               counter = await incrementCounterWithSleep(counter);
-              createStrategyVariationWithSellRules(
-                strategiesWithBuySellRuleVariations,
-                strategiesWithBuyRuleVariations,
-                [ruleVariations, rule2Variations]
-              );
+              createStrategyVariationWithSellRules(strategiesWithBuySellRuleVariations, strategiesWithBuyRuleVariations, [ruleVariations, rule2Variations, rule3Variations]);
               break;
             }
+          } else {
+            counter = await incrementCounterWithSleep(counter);
+            createStrategyVariationWithSellRules(strategiesWithBuySellRuleVariations, strategiesWithBuyRuleVariations, [ruleVariations, rule2Variations]);
+            break;
           }
         } else {
           counter = await incrementCounterWithSleep(counter);
-          createStrategyVariationWithSellRules(strategiesWithBuySellRuleVariations, strategiesWithBuyRuleVariations, [
-            ruleVariations
-          ]);
+          createStrategyVariationWithSellRules(strategiesWithBuySellRuleVariations, strategiesWithBuyRuleVariations, [ruleVariations]);
           break;
         }
       }
     } else {
       strategiesWithBuySellRuleVariations = strategiesWithBuyRuleVariations;
-    }
-
-    if (changeStoploss) {
-      let strategiesWithBuySellAndStoplossRuleVariations = [];
-      createStrategyVariationWithStoplossRules(
-        strategiesWithBuySellAndStoplossRuleVariations,
-        strategiesWithBuySellRuleVariations,
-        ft
-      );
-      strategiesWithBuySellRuleVariations = strategiesWithBuySellAndStoplossRuleVariations;
-    }
-
-    if (changeTarget) {
-      let strategiesWithBuySellAndTargetsRuleVariations = [];
-      createStrategyVariationWithTargetRules(
-        strategiesWithBuySellAndTargetsRuleVariations,
-        strategiesWithBuySellRuleVariations,
-        ft
-      );
-      strategiesWithBuySellRuleVariations = strategiesWithBuySellAndTargetsRuleVariations;
     }
 
     return strategiesWithBuySellRuleVariations;
@@ -1810,9 +1607,7 @@ async function getStrategyVariations(strategy, ft) {
 }
 
 function opResultShowRows(from, to) {
-  $("#opStrategiesTable").html(
-    "<thead><tr><td>Strategy</td><td>Total Return</td><td>Max Drawdown</td><td>Winning %</td><td>Avg. Trade</td><td>Best Trade</td><td>Worst Trade</td><td>Trades N.</td><td>Save</td></tr></thead><tbody>"
-  );
+  $("#opStrategiesTable").html("<thead><tr><td>Strategy</td><td>Total Return</td><td>Max Drawdown</td><td>Winning %</td><td>Avg. Trade</td><td>Best Trade</td><td>Worst Trade</td><td>Trades N.</td><td>Save</td></tr></thead><tbody>");
   for (let i = from; i < Math.min(strategyVariationsResults.length, to); i++) {
     let res = strategyVariationsResults[i];
     let classes = "";
@@ -1825,41 +1620,19 @@ function opResultShowRows(from, to) {
       resultClass = "text-red";
     }
 
-    let maxDdClass = res.maxDrawdown < 0 ? "text-red" : "";
-    let winningClass = res.winningPercent >= 50 ? "text-green" : "text-red";
-    let avgGainLossPerTradeClass =
-      res.avgGainLossPerTrade > 0 ? "text-green" : res.avgGainLossPerTrade < 0 ? "text-red" : "";
-    $("#opStrategiesTable").append(
-      "<tr><td>" +
-        (i + 1) +
-        '&nbsp;<i class="' +
-        classes +
-        '"></td><td class="' +
-        resultClass +
-        '">' +
-        res.totalReturn.toFixed(2) +
-        '%</td><td class="' +
-        maxDdClass +
-        '">' +
-        res.maxDrawdown.toFixed(2) +
-        '%</td><td class="' +
-        winningClass +
-        '">' +
-        res.winningPercent.toFixed(2) +
-        '%</td><td class="' +
-        avgGainLossPerTradeClass +
-        '">' +
-        res.avgGainLossPerTrade.toFixed(2) +
-        '%</td><td class="text-green">' +
-        res.biggestGain.toFixed(2) +
-        '%</td><td class="text-red">' +
-        res.biggestLost.toFixed(2) +
-        "%</td><td>" +
-        res.executedTrades +
-        '</td><td><a  href="#/" onclick="openOpStrategy(' +
-        i +
-        ')"><i class="fas fa-save"></i></a></td></tr>'
-    );
+    let maxDdClass = res.maxDrawdown < 0
+      ? "text-red"
+      : "";
+    let winningClass = res.winningPercent >= 50
+      ? "text-green"
+      : "text-red";
+    let avgGainLossPerTradeClass = res.avgGainLossPerTrade > 0
+      ? "text-green"
+      : res.avgGainLossPerTrade < 0
+        ? "text-red"
+        : "";
+    $("#opStrategiesTable").append("<tr><td>" + (
+    i + 1) + '&nbsp;<i class="' + classes + '"></td><td class="' + resultClass + '">' + res.totalReturn.toFixed(2) + '%</td><td class="' + maxDdClass + '">' + res.maxDrawdown.toFixed(2) + '%</td><td class="' + winningClass + '">' + res.winningPercent.toFixed(2) + '%</td><td class="' + avgGainLossPerTradeClass + '">' + res.avgGainLossPerTrade.toFixed(2) + '%</td><td class="text-green">' + res.biggestGain.toFixed(2) + '%</td><td class="text-red">' + res.biggestLost.toFixed(2) + "%</td><td>" + res.executedTrades + '</td><td><a  href="#/" onclick="openOpStrategy(' + i + ')"><i class="fas fa-save"></i></a></td></tr>');
   }
   $("#opStrategiesTable").append("</tbody>");
 }
@@ -2058,27 +1831,14 @@ function openOpStrategy(index) {
 }
 
 function opOptInfo() {
-  openModalInfoBig(
-    '<h2 class="text-center">Optimization Type:</h2><strong>Max Return</strong> - optimize the parameters to find the strategies that generate the highest return.<br><strong>Smooth</strong> - optimize the parameters to find the strategies that generate relatively consistent trades. Usually, those strategies generate less return but they have more predictable and smooth results.<br><strong>Risk/Reward</strong> - optimize the parameters to find the strategies that generate the highest return for the lowest drawdown.'
-  );
+  openModalInfoBig('<h2 class="text-center">Optimization Type:</h2><strong>Max Return</strong> - optimize the parameters to find the strategies that generate the highest return.<br><strong>Smooth</strong> - optimize the parameters to find the strategies that generate relatively consistent trades. Usually, those strategies generate less return but they have more predictable and smooth results.<br><strong>Risk/Reward</strong> - optimize the parameters to find the strategies that generate the highest return for the lowest drawdown.');
 }
 function opOptTypeInfo(field) {
-  openModalInfoBig(
-    '<h2 class="text-center">' +
-      field +
-      " Type:</h2><strong>Don't change</strong> - the provided " +
-      field.toLowerCase() +
-      " will not be changed.<br><strong>Change</strong> - uses wide range of values to create strategy variations.<br>" +
-      "<strong>Fine Tune</strong> - uses values close to the provided " +
-      field.toLowerCase() +
-      " in the original strategy."
-  );
+  openModalInfoBig('<h2 class="text-center">' + field + " Type:</h2><strong>Don't change</strong> - the provided " + field.toLowerCase() + " will not be changed.<br><strong>Change</strong> - uses wide range of values to create strategy variations.<br>" + "<strong>Fine Tune</strong> - uses values close to the provided " + field.toLowerCase() + " in the original strategy.");
 }
 
 function opCpuInfo() {
-  openModalInfoBig(
-    '<div class="text-center"><h2>CPU Usage</h2></div><strong>One Core</strong> - uses only one CPU core. Will run slowly but will not consume much CPU power.<br><strong>1/2 Cores</strong> - uses 1/2 of your total CPU cores. Runs faster but consumes more resources.<br><strong>All Cores</strong> - uses all of your CPU cores - 1. The fastest option but it is recommended to avoid using additional applications when using this feature.'
-  );
+  openModalInfoBig('<div class="text-center"><h2>CPU Usage</h2></div><strong>One Core</strong> - uses only one CPU core. Will run slowly but will not consume much CPU power.<br><strong>1/2 Cores</strong> - uses 1/2 of your total CPU cores. Runs faster but consumes more resources.<br><strong>All Cores</strong> - uses all of your CPU cores - 1. The fastest option but it is recommended to avoid using additional applications when using this feature.');
 }
 
 function fillOpTestPeriod() {
@@ -2089,13 +1849,15 @@ function fillOpTestPeriod() {
     let startDate = new Date();
     startDate.setMonth(startDate.getMonth() - 1);
     let day = ("0" + startDate.getDate()).slice(-2);
-    let month = ("0" + (startDate.getMonth() + 1)).slice(-2);
+    let month = ("0" + (
+    startDate.getMonth() + 1)).slice(-2);
     let startDateStr = startDate.getFullYear() + "-" + month + "-" + day;
     $("#opFromDate").val(startDateStr);
 
     let toDate = new Date();
     day = ("0" + toDate.getDate()).slice(-2);
-    month = ("0" + (toDate.getMonth() + 1)).slice(-2);
+    month = ("0" + (
+    toDate.getMonth() + 1)).slice(-2);
     let toDateStr = toDate.getFullYear() + "-" + month + "-" + day;
     $("#opToDate").val(toDateStr);
   } catch (err) {
@@ -2136,15 +1898,13 @@ async function fillOptimizationResult(marketReturn) {
     $("#opStrategiesTableNav").html("");
     let rowsTotal = strategyVariationsResults.length;
 
-    let marketReturnClass = marketReturn > 0 ? "text-green" : marketReturn < 0 ? "text-red" : "";
+    let marketReturnClass = marketReturn > 0
+      ? "text-green"
+      : marketReturn < 0
+        ? "text-red"
+        : "";
     if (strategyVariationsResults.length > 0) {
-      $("#opResultH").html(
-        'Showing top 100 of the optimized strategies. Market Return for the same period: <span class="' +
-          marketReturnClass +
-          '">' +
-          marketReturn.toFixed(2) +
-          "%</span>"
-      );
+      $("#opResultH").html('Showing top 100 of the optimized strategies. Market Return for the same period: <span class="' + marketReturnClass + '">' + marketReturn.toFixed(2) + "%</span>");
       $("#opStrategiesTable").show();
     } else {
       $("#opResultH").html("The optimiaztion didn't generate any strategies with positive return.");
