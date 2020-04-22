@@ -1,26 +1,21 @@
 {
-  "name": "easy-crypto-bot",
+  "name": "crypto-bot",
   "version": "1.0.55",
   "description": "Cryptocurrency Trading Bot",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hristovsn/easy-crypto-bot"
+    "url": "https://github.com/hristovsn/crypto-bot"
   },
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "win32": "electron-packager . easy-crypto-bot --overwrite --asar --platform=win32 --arch=ia32 --icon=assets/icons/icon.ico --prune=true --out=release-builds --version-string.CompanyName=\"Stefan Hristov.\" --version-string.FileDescription=CE --version-string.ProductName=\"Easy Crypto Bot\"",
-    "win64": "electron-packager . easy-crypto-bot --overwrite --asar --platform=win32 --arch=x64 --icon=assets/icons/icon.ico--prune=true --out=release-builds --version-string.CompanyName=\"Stefan Hristov.\" --version-string.FileDescription=CE --version-string.ProductName=\"Easy Crypto Bot\"",
-    "lin32": "electron-packager . easy-crypto-bot --overwrite --asar --platform=linux --arch=ia32 --icon=assets/icons/icon.png --prune=true --out=release-builds",
-    "lin64": "electron-packager . easy-crypto-bot --overwrite --asar --platform=linux --arch=x64 --icon=assets/icons/icon.png --prune=true --out=release-builds",
-    "mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/icon.icns --prune=true --asar --out=release-builds"
-  },
+    "start": "electron ."
+   },
   "keywords": [
     ""
   ],
   "author": {
     "name": "Stefan Hristov",
-    "email": "support@easycryptobot.com"
+    "email": "support@cryptobot.com"
   },
   "license": "GPL-3.0-only",
   "devDependencies": {
